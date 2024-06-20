@@ -8,6 +8,7 @@
     import io.swagger.v3.oas.annotations.Operation;
     import io.swagger.v3.oas.annotations.tags.Tag;
     import jakarta.annotation.Resource;
+    import org.springframework.beans.factory.annotation.Value;
     import org.springframework.core.io.InputStreamResource;
     import org.springframework.http.HttpHeaders;
     import org.springframework.http.HttpStatus;
@@ -18,11 +19,15 @@
     import org.springframework.web.multipart.MultipartFile;
 
     import java.io.IOException;
+    import java.nio.file.Files;
+    import java.nio.file.Path;
+    import java.nio.file.Paths;
     import java.util.ArrayList;
     import java.util.List;
 
     @Tag(name = "이미지 API", description = "이미지 등록 API")
     @Component
+    @RestController
     public class ImageController {
 
         private final ImgUploadService imgUploadService;
@@ -30,6 +35,8 @@
         public ImageController(ImgUploadService imgUploadService) {
             this.imgUploadService = imgUploadService;
         }
+        @Value("${upload.path}") // application.properties에 설정된 이미지 업로드 경로를 가져옵니다.
+        private String uploadPath;
 
         @Operation(summary = "이미지 업로드")
         public ResponseEntity<Object> uploadImage(ProductImageEntity productImageEntity) throws Exception {
@@ -147,5 +154,21 @@
                 return ResponseEntity.status(500).body(null);
             }
         }
+
+        @PostMapping("/api/upload")
+        public ResponseEntity<?> uploadImage(@RequestParam("upload") MultipartFile file) {
+            try {
+                // 파일 저장 경로 생성
+                Path path = Paths.get(uploadPath + file.getOriginalFilename());
+                Files.copy(file.getInputStream(), path);
+
+                // 이미지 URL 반환
+                String fileUrl = "http://localhost:8080/uploads/" + file.getOriginalFilename();
+                return ResponseEntity.ok().body("{\"url\": \"" + fileUrl + "\"}");
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        }
+
     }
 
