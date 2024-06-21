@@ -18,12 +18,14 @@
     import org.springframework.web.bind.annotation.*;
     import org.springframework.web.multipart.MultipartFile;
 
+    import java.io.File;
     import java.io.IOException;
     import java.nio.file.Files;
     import java.nio.file.Path;
     import java.nio.file.Paths;
     import java.util.ArrayList;
     import java.util.List;
+    import java.util.UUID;
 
     @Tag(name = "이미지 API", description = "이미지 등록 API")
     @Component
@@ -159,11 +161,18 @@
         public ResponseEntity<?> uploadImage(@RequestParam("upload") MultipartFile file) {
             try {
                 // 파일 저장 경로 생성
-                Path path = Paths.get(uploadPath + file.getOriginalFilename());
-                Files.copy(file.getInputStream(), path);
+                String uniqueFilename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+                String absolutePath = new File("").getAbsolutePath() + new File(uploadPath);
+                File destinationDir = new File(absolutePath + File.separator + "editor");
+                if (!destinationDir.exists()) {
+                    destinationDir.mkdirs(); // 디렉토리가 없으면 생성
+                }
+                File destinationFile = new File(destinationDir, uniqueFilename);
+
+                file.transferTo(destinationFile);
 
                 // 이미지 URL 반환
-                String fileUrl = "http://localhost:8080/uploads/" + file.getOriginalFilename();
+                String fileUrl = "http://localhost:8080/images/editor/" + uniqueFilename;
                 return ResponseEntity.ok().body("{\"url\": \"" + fileUrl + "\"}");
             } catch (Exception e) {
                 return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");

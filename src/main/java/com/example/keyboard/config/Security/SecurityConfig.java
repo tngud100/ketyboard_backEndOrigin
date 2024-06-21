@@ -147,6 +147,7 @@ public class SecurityConfig  {
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowCredentials(true);
+        configuration.addAllowedOriginPattern("*");
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setMaxAge(3600L);
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Refresh-Token"));
