@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.keyboard.repository.BoardDao">
+    <!-- 문의 등록 -->
+    <insert id="enrollNoticeBoard" parameterType="NoticeEntity" >
+        INSERT INTO notices(title, content)
+        VALUES (#{title}, #{content})
+    </insert>
+    <select id="selectNoticeAllBoard" resultType="NoticeEntity">
+        SELECT * FROM notices WHERE isdelete = 0;
+    </select>
+    <select id="getNoticeByNoticeId" resultType="NoticeEntity">
+        SELECT * FROM notices WHERE notices_id = #{notices_id} AND isdelete = 0;
+    </select>
+
+</mapper>
