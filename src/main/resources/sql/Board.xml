@@ -5,15 +5,57 @@
 
 <mapper namespace="com.example.keyboard.repository.BoardDao">
     <!-- 문의 등록 -->
+    <select id="selectNoticeAllBoard" resultType="NoticeEntity">
+        SELECT * FROM notices WHERE isdelete = 0 ORDER BY regdate ASC;
+    </select>
+    <select id="getNoticeByNoticeId" resultType="NoticeEntity">
+        SELECT * FROM notices WHERE notices_id = #{notices_id} AND isdelete = 0 ORDER BY regdate ASC;
+    </select>
+
     <insert id="enrollNoticeBoard" parameterType="NoticeEntity" >
         INSERT INTO notices(title, content)
         VALUES (#{title}, #{content})
     </insert>
-    <select id="selectNoticeAllBoard" resultType="NoticeEntity">
-        SELECT * FROM notices WHERE isdelete = 0;
+
+    <update id="updateNoticeBoard" parameterType="NoticeEntity">
+        UPDATE notices
+        SET  title = #{title},
+             content = #{content}
+        WHERE notices_id = #{notices_id}
+    </update>
+
+    <update id="deleteNoticeBoard" parameterType="Long">
+        UPDATE notices
+        SET  isdelete = 1
+        WHERE notices_id = #{notices_id}
+    </update>
+
+
+    <!-- 문의 등록 -->
+    <select id="selectFaqAllBoard" resultType="FaqEntity">
+        SELECT * FROM faqs WHERE isdelete = 0 ORDER BY regdate ASC;
     </select>
-    <select id="getNoticeByNoticeId" resultType="NoticeEntity">
-        SELECT * FROM notices WHERE notices_id = #{notices_id} AND isdelete = 0;
+    <select id="getFaqByFaqId" resultType="FaqEntity">
+        SELECT * FROM faqs WHERE faqs_id = #{faqs_id} AND isdelete = 0 ORDER BY regdate ASC;
     </select>
 
+    <insert id="enrollFaqBoard" parameterType="FaqEntity" >
+        INSERT INTO faqs(category, title, ask, comment)
+        VALUES (#{category}, #{title}, #{ask}, #{commnet})
+    </insert>
+
+    <update id="updateFaqBoard" parameterType="FaqEntity">
+        UPDATE faqs
+        SET category = #{category}
+            title = #{title},
+            ask = #{ask},
+            comment = #{comment},
+        WHERE faqs_id = #{faqs_id}
+    </update>
+
+    <update id="deleteFaqBoard" parameterType="Long">
+        UPDATE faqs
+        SET  isdelete = 1
+        WHERE faqs_id = #{faqs_id}
+    </update>
 </mapper>

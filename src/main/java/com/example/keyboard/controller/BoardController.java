@@ -1,5 +1,6 @@
 package com.example.keyboard.controller;
 
+import com.example.keyboard.entity.board.faq.FaqEntity;
 import com.example.keyboard.entity.board.inquire.InquireEntity;
 import com.example.keyboard.entity.board.notice.NoticeEntity;
 import com.example.keyboard.service.BoardService;
@@ -46,6 +47,79 @@ public class BoardController {
     public ResponseEntity<Object> enrollNoticeBoard(@RequestBody NoticeEntity noticeEntity){
         try{
             boardService.enrollNoticeBoard(noticeEntity);
+            return new ResponseEntity<>("ok", HttpStatus.OK);
+        } catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    @Operation(summary = "공지사항 삭제", description = "공지사항 삭제하기")
+    @PutMapping("/notice/{noticesId}/delete")
+    public ResponseEntity<Object> deleteNoticeBoard(@PathVariable("noticesId") Long notices_id){
+        try{
+            boardService.deleteNoticeBoard(notices_id);
+            return new ResponseEntity<>("ok", HttpStatus.OK);
+        } catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    @Operation(summary = "공지사항 수정", description = "공지사항 수정하기")
+    @PutMapping("/notice/{noticesId}/update")
+    public ResponseEntity<Object> updateNoticeBoard(@RequestBody NoticeEntity noticeEntity){
+        try{
+            boardService.updateNoticeBoard(noticeEntity);
+            return new ResponseEntity<>("ok", HttpStatus.OK);
+        } catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+
+    @Operation(summary = "자주묻는 질문 전체리스트 조회", description = "자주묻는 질문 전체리스트 조회")
+    @GetMapping("/faq/get/all")
+    public ResponseEntity<Object> selectFaqAllBoard(){
+        try{
+            List<FaqEntity> faqList =  boardService.selectFaqAllBoard();
+            return new ResponseEntity<>(faqList, HttpStatus.OK);
+        } catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    @Operation(summary = "자주묻는 질문 특정 게시판 조회", description = "자주묻는 질문 특정 게시판 조회")
+    @GetMapping("/faq/get/{faqsId}")
+    public ResponseEntity<Object> getFaqByFaqId(@PathVariable("faqsId") Long faqs_id){
+        try{
+            FaqEntity faqBoard =  boardService.getFaqByFaqId(faqs_id);
+            return new ResponseEntity<>(faqBoard, HttpStatus.OK);
+        } catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    @Operation(summary = "자주묻는 질문 등록", description = "자주묻는 질문 등록하기")
+    @PostMapping("/faq/enroll")
+    public ResponseEntity<Object> enrollFaqBoard(@RequestBody FaqEntity faqEntity){
+        try{
+            boardService.enrollFaqBoard(faqEntity);
+            return new ResponseEntity<>("ok", HttpStatus.OK);
+        } catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    @Operation(summary = "자주묻는 질문 삭제", description = "자주묻는 질문 삭제하기")
+    @PutMapping("/faq/{faqsId}/delete")
+    public ResponseEntity<Object> deleteFaqBoard(@PathVariable("faqsId") Long faqs_id){
+        try{
+            boardService.deleteFaqBoard(faqs_id);
+            return new ResponseEntity<>("ok", HttpStatus.OK);
+        } catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    @Operation(summary = "자주묻는 질문 수정", description = "자주묻는 질문 수정하기")
+    @PutMapping("/faq/{faqsId}/update")
+    public ResponseEntity<Object> updateFaqBoard(@RequestBody FaqEntity faqEntity){
+        try{
+            boardService.updateFaqBoard(faqEntity);
             return new ResponseEntity<>("ok", HttpStatus.OK);
         } catch (Exception e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
