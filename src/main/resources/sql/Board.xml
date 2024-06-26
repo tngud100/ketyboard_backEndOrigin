@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.keyboard.repository.BoardDao">
-    <!-- 문의 등록 -->
+    <!-- 공지사항 -->
     <select id="selectNoticeAllBoard" resultType="NoticeEntity">
         SELECT * FROM notices WHERE isdelete = 0 ORDER BY regdate ASC;
     </select>
@@ -30,8 +30,7 @@
         WHERE notices_id = #{notices_id}
     </update>
 
-
-    <!-- 문의 등록 -->
+    <!-- FAQ -->
     <select id="selectFaqAllBoard" resultType="FaqEntity">
         SELECT * FROM faqs WHERE isdelete = 0 ORDER BY regdate ASC;
     </select>
@@ -41,15 +40,15 @@
 
     <insert id="enrollFaqBoard" parameterType="FaqEntity" >
         INSERT INTO faqs(category, title, ask, comment)
-        VALUES (#{category}, #{title}, #{ask}, #{commnet})
+        VALUES (#{category}, #{title}, #{ask}, #{comment})
     </insert>
 
     <update id="updateFaqBoard" parameterType="FaqEntity">
         UPDATE faqs
-        SET category = #{category}
+        SET category = #{category},
             title = #{title},
             ask = #{ask},
-            comment = #{comment},
+            comment = #{comment}
         WHERE faqs_id = #{faqs_id}
     </update>
 
@@ -58,4 +57,33 @@
         SET  isdelete = 1
         WHERE faqs_id = #{faqs_id}
     </update>
+
+
+    <!-- 다운로드 -->
+    <select id="selectDownloadAllBoard" resultType="DownloadEntity">
+        SELECT * FROM download WHERE isdelete = 0 ORDER BY regdate ASC;
+    </select>
+    <select id="getDownloadByDownloadId" resultType="DownloadEntity">
+        SELECT * FROM download WHERE downloads_id = #{downloads_id} AND isdelete = 0 ORDER BY regdate ASC;
+    </select>
+
+    <insert id="enrollDownloadBoard" parameterType="DownloadEntity" useGeneratedKeys="true" keyProperty="downloads_id">
+        INSERT INTO download(category, title, content)
+        VALUES (#{category}, #{title}, #{content})
+    </insert>
+
+    <update id="updateDownloadBoard" parameterType="DownloadEntity">
+        UPDATE download
+        SET category = #{category},
+            title = #{title},
+            content = #{content}
+        WHERE downloads_id = #{downloads_id}
+    </update>
+
+    <update id="deleteDownloadBoard" parameterType="Long">
+        UPDATE download
+        SET  isdelete = 1
+        WHERE downloads_id = #{downloads_id}
+    </update>
+
 </mapper>

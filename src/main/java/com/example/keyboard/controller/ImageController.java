@@ -179,5 +179,13 @@
             }
         }
 
+
+
+        public void enrollDownloadFiles(List<MultipartFile> files, Long downloads_id) throws Exception{
+            if(files != null){
+                imgUploadService.uploadDownloadFile(files, downloads_id);
+            }
+        }
+
     }
 

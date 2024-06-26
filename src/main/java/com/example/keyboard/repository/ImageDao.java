@@ -1,5 +1,7 @@
 package com.example.keyboard.repository;
 
+import com.example.keyboard.entity.Image.download.DownloadDaoEntity;
+import com.example.keyboard.entity.Image.download.DownloadFileDaoEntity;
 import com.example.keyboard.entity.Image.product.ProductDaoEntity;
 import com.example.keyboard.entity.Image.inquire.InquireDaoEntity;
 import org.apache.ibatis.annotations.Mapper;
@@ -24,4 +26,10 @@ public interface ImageDao {
 
     public void deleteInquirePicturesById(@Param("inquires_id") Long inquires_id) throws Exception;
     public void deleteInquirePicturesByPictureId(@Param("inquire_picture_id") Long inquire_picture_id) throws Exception;
+
+
+
+    public void saveDownloadFiles(DownloadFileDaoEntity fileVO) throws Exception;
+    public List<DownloadFileDaoEntity> getDownloadFilesNameByDownloadId(@Param("downloads_id") Long downloads_id) throws Exception;
+//    public void deleteDownloadFilesByDownloadFilesId(@Param("download_file_id") Long download_file_id) throws Exception;
 }

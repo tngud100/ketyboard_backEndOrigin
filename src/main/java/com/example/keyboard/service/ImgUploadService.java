@@ -1,5 +1,7 @@
 package com.example.keyboard.service;
 
+import com.example.keyboard.entity.Image.download.DownloadDaoEntity;
+import com.example.keyboard.entity.Image.download.DownloadFileDaoEntity;
 import com.example.keyboard.entity.Image.inquire.InquireDaoEntity;
 import com.example.keyboard.entity.Image.product.ProductDaoEntity;
 import com.example.keyboard.entity.Image.product.ProductImageEntity;
@@ -31,6 +33,8 @@ public class ImgUploadService {
 
     @Value("${upload.path}") // application.properties에 설정된 이미지 업로드 경로를 가져옵니다.
     private String uploadPath;
+    @Value("${fileUpload.path}")
+    private String uploadFilePath;
 
     private final ImageDao imageDao;
     private ProductDaoEntity fileEntity;
@@ -437,5 +441,38 @@ public class ImgUploadService {
         } else {
             throw new IOException("File not found " + fileName);
         }
+    }
+
+    // 다운로드 게시판 파일 다운로드
+    public void uploadDownloadFile(List<MultipartFile> files, Long downloads_id) throws Exception {
+        for (MultipartFile file : files) {
+            saveFile(file, downloads_id);
+        }
+    }
+
+    private void saveFile(MultipartFile file, Long downloads_id) throws Exception {
+        if (file.isEmpty()) {
+            throw new Exception("Failed to store empty file.");
+        }
+
+        String absolutePath = new File("").getAbsolutePath() + new File(uploadFilePath);
+        File destinationDir = new File(absolutePath);
+
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs();
+        }
+
+        String fileName = file.getOriginalFilename();
+        String new_file_name = System.nanoTime() + fileName;
+
+        File destinationFile = new File(destinationDir, new_file_name);
+
+        file.transferTo(destinationFile);
+
+        DownloadFileDaoEntity fileVO = new DownloadFileDaoEntity();
+        fileVO.setFile_name(fileName);
+        fileVO.setFile_path("/files" + File.separator + new_file_name);
+        fileVO.setDownloads_id(downloads_id);
+        imageDao.saveDownloadFiles(fileVO);
     }
 }

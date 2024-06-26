@@ -1,5 +1,6 @@
 package com.example.keyboard.repository;
 
+import com.example.keyboard.entity.board.download.DownloadEntity;
 import com.example.keyboard.entity.board.faq.FaqEntity;
 import com.example.keyboard.entity.board.notice.NoticeEntity;
 import org.apache.ibatis.annotations.Mapper;
@@ -21,4 +22,11 @@ public interface BoardDao {
     public void enrollFaqBoard(FaqEntity faqEntity) throws Exception;
     public void updateFaqBoard(FaqEntity faqEntity) throws Exception;
     public void deleteFaqBoard(long faqs_id) throws Exception;
+
+
+    public List<DownloadEntity> selectDownloadAllBoard() throws Exception;
+    public DownloadEntity getDownloadByDownloadId(long downloads_id) throws Exception;
+    public void enrollDownloadBoard(DownloadEntity DownloadEntity) throws Exception;
+    public void updateDownloadBoard(DownloadEntity DownloadEntity) throws Exception;
+    public void deleteDownloadBoard(long downloads_id) throws Exception;
 }

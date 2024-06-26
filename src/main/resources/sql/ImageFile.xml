@@ -42,4 +42,19 @@
     <delete id="deleteInquirePicturesByPictureId" parameterType="Long">
         DELETE FROM inquirepictures WHERE inquire_picture_id = #{inquire_picture_id}
     </delete>
+
+
+    <insert id="saveDownloadFiles" parameterType="DownloadFileDaoEntity">
+        INSERT INTO downloadfiles(downloads_id, file_path, file_name)
+        VALUES (#{downloads_id}, #{file_path}, #{file_name})
+    </insert>
+    <select id="getDownloadFilesNameByDownloadId" parameterType="Long" resultType="DownloadFileDaoEntity">
+        SELECT * FROM downloadfiles WHERE downloads_id = #{downloads_id} ORDER BY downloads_id ASC;
+    </select>
+<!--    <select id="selectDownloadFiles" resultType="InquireDaoEntity">-->
+<!--        SELECT * FROM inquirepictures WHERE picture_name = #{picture_name} AND inquires_id = #{inquires_id}-->
+<!--    </select>-->
+<!--    <delete id="deleteDownloadFilesByDownloadFilesId" parameterType="Long">-->
+<!--        DELETE FROM downloadpictures WHERE downloads_id = #{downloads_id}-->
+<!--    </delete>-->
 </mapper>
