@@ -475,4 +475,11 @@ public class ImgUploadService {
         fileVO.setDownloads_id(downloads_id);
         imageDao.saveDownloadFiles(fileVO);
     }
+
+    public void deleteFilesByDownloadFilesId(Long download_file_id) throws Exception{
+        imageDao.deleteFilesByDownloadFilesId(download_file_id);
+    }
+    public void deleteFilesByDownloadsId(Long downloads_id) throws Exception{
+        imageDao.deleteFilesByDownloadsId(downloads_id);
+    }
 }

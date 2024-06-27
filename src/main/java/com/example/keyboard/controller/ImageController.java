@@ -186,6 +186,12 @@
                 imgUploadService.uploadDownloadFile(files, downloads_id);
             }
         }
+        public void deleteFilesByDownloadFilesId(Long download_file_id) throws Exception{
+            imgUploadService.deleteFilesByDownloadFilesId(download_file_id);
+        }
+        public void deleteFilesByDownloadsId(Long downloads_id) throws Exception{
+            imgUploadService.deleteFilesByDownloadsId(downloads_id);
+        }
 
     }
 

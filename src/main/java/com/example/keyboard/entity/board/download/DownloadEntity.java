@@ -14,5 +14,6 @@ public class DownloadEntity {
     private String regdate;
     private String modified_date;
     private List<MultipartFile> files;
+    private List<String> existedFileNames;
     private int isdelete;
 }

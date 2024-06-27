@@ -51,10 +51,10 @@
     <select id="getDownloadFilesNameByDownloadId" parameterType="Long" resultType="DownloadFileDaoEntity">
         SELECT * FROM downloadfiles WHERE downloads_id = #{downloads_id} ORDER BY downloads_id ASC;
     </select>
-<!--    <select id="selectDownloadFiles" resultType="InquireDaoEntity">-->
-<!--        SELECT * FROM inquirepictures WHERE picture_name = #{picture_name} AND inquires_id = #{inquires_id}-->
-<!--    </select>-->
-<!--    <delete id="deleteDownloadFilesByDownloadFilesId" parameterType="Long">-->
-<!--        DELETE FROM downloadpictures WHERE downloads_id = #{downloads_id}-->
-<!--    </delete>-->
+    <delete id="deleteFilesByDownloadFilesId" parameterType="Long">
+        DELETE FROM downloadfiles WHERE download_file_id = #{download_file_id}
+    </delete>
+    <delete id="deleteFilesByDownloadsId" parameterType="Long">
+        DELETE FROM downloadfiles WHERE downloads_id = #{downloads_id}
+    </delete>
 </mapper>

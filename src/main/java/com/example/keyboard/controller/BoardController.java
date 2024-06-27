@@ -1,9 +1,11 @@
 package com.example.keyboard.controller;
 
+import com.example.keyboard.entity.Image.download.DownloadFileDaoEntity;
 import com.example.keyboard.entity.board.download.DownloadEntity;
 import com.example.keyboard.entity.board.faq.FaqEntity;
 import com.example.keyboard.entity.board.inquire.InquireEntity;
 import com.example.keyboard.entity.board.notice.NoticeEntity;
+import com.example.keyboard.repository.ImageDao;
 import com.example.keyboard.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +28,7 @@ import java.util.Map;
 public class BoardController {
     public final BoardService boardService;
     public final ImageController imageController;
+    public final ImageDao imageDao;
 
     @Operation(summary = "공지사항 전체리스트 조회", description = "공지사항 전체리스트 조회")
     @GetMapping("/notice/get/all")
@@ -186,10 +189,7 @@ public class BoardController {
     @PutMapping("/download/{downloadsId}/update")
     public ResponseEntity<Object> updateDownloadBoard(@ModelAttribute DownloadEntity downloadEntity){
         try{
-            List<MultipartFile> files = downloadEntity.getFiles();
-            Long downloads_id = downloadEntity.getDownloads_id();
             boardService.updateDownloadBoard(downloadEntity);
-            imageController.enrollDownloadFiles(files, downloads_id);
             return new ResponseEntity<>("ok", HttpStatus.OK);
         } catch (Exception e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
