@@ -1,9 +1,11 @@
     package com.example.keyboard.controller;
 
+    import com.example.keyboard.entity.Image.download.DownloadFileDaoEntity;
     import com.example.keyboard.entity.Image.inquire.InquireDaoEntity;
     import com.example.keyboard.entity.Image.inquire.InquireImageEntity;
     import com.example.keyboard.entity.Image.product.ProductDaoEntity;
     import com.example.keyboard.entity.Image.product.ProductImageEntity;
+    import com.example.keyboard.entity.board.download.DownloadEntity;
     import com.example.keyboard.service.ImgUploadService;
     import io.swagger.v3.oas.annotations.Operation;
     import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,6 +41,8 @@
         }
         @Value("${upload.path}") // application.properties에 설정된 이미지 업로드 경로를 가져옵니다.
         private String uploadPath;
+        @Value("${fileUpload.path}")
+        private String uploadFilePath;
 
         @Operation(summary = "이미지 업로드")
         public ResponseEntity<Object> uploadImage(ProductImageEntity productImageEntity) throws Exception {
@@ -157,19 +161,10 @@
             }
         }
 
-        @PostMapping("/api/upload")
-        public ResponseEntity<?> uploadImage(@RequestParam("upload") MultipartFile file) {
+        @PostMapping("api/editor/imgUpload")
+        public ResponseEntity<?> uploadEditorImage(@RequestParam("upload") MultipartFile file) {
             try {
-                // 파일 저장 경로 생성
-                String uniqueFilename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-                String absolutePath = new File("").getAbsolutePath() + new File(uploadPath);
-                File destinationDir = new File(absolutePath + File.separator + "editor");
-                if (!destinationDir.exists()) {
-                    destinationDir.mkdirs(); // 디렉토리가 없으면 생성
-                }
-                File destinationFile = new File(destinationDir, uniqueFilename);
-
-                file.transferTo(destinationFile);
+                String uniqueFilename = imgUploadService.uploadEditorImage(file);
 
                 // 이미지 URL 반환
                 String fileUrl = "http://localhost:8080/images/editor/" + uniqueFilename;
@@ -179,6 +174,32 @@
             }
         }
 
+        @DeleteMapping("api/editor/imgDelete/{imgName}")
+        public ResponseEntity<?> deleteEditorImage(@PathVariable("imgName") String imgName) {
+            try {
+                imgUploadService.deleteEditorImage(imgName);
+                return ResponseEntity.ok().body("");
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        }
+
+        // 게시글 작성시에는 하루뒤 자동 삭제, 즉 editor폴더에서 머무른지 하루된 이미지는 자동 삭제
+        // 게시글을 등록시에는 editor폴더에 있던 이미지를 images폴더로 이동 후 데이터 베이스 저장
+        // 게시글 삭제시에는 images폴더에 있는 해당 게시글 이미지 삭제
+        // 게시글 수정시에는 url확인 후 삭제
+
+        // board_type 1일때 notice, 2일때 faq, 3일때 download
+        public void enrollEditorPictures(List<String> imageUrls, Long board_id, int board_type) throws Exception{
+            for(String imgUrl : imageUrls){
+                String imgName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
+                String[] originalName = imgName.split("_",2);
+                String path = "/images"+ File.separator + imgName;
+
+                imgUploadService.moveEditorImages(imgUrl);
+                imgUploadService.enrollEditorImageToDatabase(originalName[1], path, board_id, board_type);
+            }
+        }
 
 
         public void enrollDownloadFiles(List<MultipartFile> files, Long downloads_id) throws Exception{
@@ -186,10 +207,11 @@
                 imgUploadService.uploadDownloadFile(files, downloads_id);
             }
         }
-        public void deleteFilesByDownloadFilesId(Long download_file_id) throws Exception{
-            imgUploadService.deleteFilesByDownloadFilesId(download_file_id);
+        public void updateDownloadFiles(DownloadEntity downloadEntity) throws Exception{
+            imgUploadService.updateDownloadFiles(downloadEntity);
         }
-        public void deleteFilesByDownloadsId(Long downloads_id) throws Exception{
+
+        public void deleteFilesByDownloadsId(Long downloads_id) throws Exception {
             imgUploadService.deleteFilesByDownloadsId(downloads_id);
         }
 

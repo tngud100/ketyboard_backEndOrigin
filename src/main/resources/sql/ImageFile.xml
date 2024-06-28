@@ -44,11 +44,29 @@
     </delete>
 
 
+
+    <insert id="saveNoticePictures" parameterType="NoticeDaoEntity">
+        INSERT INTO noticepictures(notices_id, picture_path, picture_name)
+        VALUES (#{notices_id}, #{picture_path}, #{picture_name})
+    </insert>
+    <insert id="saveFaqPictures" parameterType="FaqDaoEntity">
+        INSERT INTO faqpictures(faqs_id, picture_path, picture_name)
+        VALUES (#{faqs_id}, #{picture_path}, #{picture_name})
+    </insert>
+    <insert id="saveDownloadPictures" parameterType="DownloadDaoEntity">
+    INSERT INTO downloadpictures(downloads_id, picture_path, picture_name)
+    VALUES (#{downloads_id}, #{picture_path}, #{picture_name})
+</insert>
+
+
     <insert id="saveDownloadFiles" parameterType="DownloadFileDaoEntity">
         INSERT INTO downloadfiles(downloads_id, file_path, file_name)
         VALUES (#{downloads_id}, #{file_path}, #{file_name})
     </insert>
-    <select id="getDownloadFilesNameByDownloadId" parameterType="Long" resultType="DownloadFileDaoEntity">
+    <select id="getDownloadFilesByDownloadFileId" parameterType="Long" resultType="DownloadFileDaoEntity">
+        SELECT * FROM downloadfiles WHERE download_file_id = #{download_file_id} ORDER BY download_file_id ASC;
+    </select>
+    <select id="getDownloadFilesByDownloadId" parameterType="Long" resultType="DownloadFileDaoEntity">
         SELECT * FROM downloadfiles WHERE downloads_id = #{downloads_id} ORDER BY downloads_id ASC;
     </select>
     <delete id="deleteFilesByDownloadFilesId" parameterType="Long">

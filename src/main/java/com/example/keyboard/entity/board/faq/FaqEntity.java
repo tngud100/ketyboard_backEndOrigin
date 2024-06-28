@@ -2,6 +2,8 @@ package com.example.keyboard.entity.board.faq;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class FaqEntity {
     private Long faqs_id;
@@ -11,5 +13,6 @@ public class FaqEntity {
     private String comment;
     private String regdate;
     private String modified_date;
+    private List<String> imageUrls;
     private int isdelete;
 }

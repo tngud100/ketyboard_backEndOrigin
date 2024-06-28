@@ -23,9 +23,6 @@ public class BoardService {
     public final ImageDao imageDao;
     public final ImageController imageController;
 
-    @Value("${fileUpload.path}")
-    private String uploadFilePath;
-
     public List<NoticeEntity> selectNoticeAllBoard() throws Exception{
         return boardDao.selectNoticeAllBoard();
     }
@@ -35,6 +32,12 @@ public class BoardService {
 
     public void enrollNoticeBoard(NoticeEntity noticeEntity) throws Exception{
         boardDao.enrollNoticeBoard(noticeEntity);
+        Long notices_id = noticeEntity.getNotices_id();
+        List<String> imageUrls = noticeEntity.getImageUrls();
+
+        if(!imageUrls.isEmpty()){
+            imageController.enrollEditorPictures(imageUrls, notices_id, 1);
+        }
     }
 
     public void updateNoticeBoard(NoticeEntity noticeEntity) throws Exception{
@@ -75,7 +78,7 @@ public class BoardService {
         return boardDao.getDownloadByDownloadId(downloads_id);
     }
     public List<String> getDownloadFilesNameByDownloadId(long downloads_id) throws Exception{
-        List<DownloadFileDaoEntity> files = imageDao.getDownloadFilesNameByDownloadId(downloads_id);
+        List<DownloadFileDaoEntity> files = imageDao.getDownloadFilesByDownloadId(downloads_id);
         List<String> fileNameList = new ArrayList<>();
         for(var i = 0; i < files.size(); i++){
             String fileName = files.get(i).getFile_name();
@@ -90,57 +93,12 @@ public class BoardService {
     }
 
     public void updateDownloadBoard(DownloadEntity downloadEntity) throws Exception {
-        List<MultipartFile> files = downloadEntity.getFiles();
-        List<String> existingFileNames = downloadEntity.getExistedFileNames();
-        Long downloads_id = downloadEntity.getDownloads_id();
-
-        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadFilePath;
-
-        if (existingFileNames == null) {
-            existingFileNames = new ArrayList<>();
-        }
-        if (files == null) {
-            files = new ArrayList<>();
-        }
-
-        List<DownloadFileDaoEntity> existedDownloadFiles = imageDao.getDownloadFilesNameByDownloadId(downloads_id);
-
-        for (DownloadFileDaoEntity downloadFile : existedDownloadFiles) {
-            if (!existingFileNames.contains(downloadFile.getFile_name())) {
-                imageController.deleteFilesByDownloadFilesId(downloadFile.getDownload_file_id());
-                deletePhysicalFile(absolutePath, downloadFile.getFile_path());
-            }
-        }
-        if (!files.isEmpty()) {
-            imageController.enrollDownloadFiles(files, downloads_id);
-        }
         boardDao.updateDownloadBoard(downloadEntity);
+        imageController.updateDownloadFiles(downloadEntity);
     }
 
     public void deleteDownloadBoard(long downloads_id) throws Exception {
         boardDao.deleteDownloadBoard(downloads_id);
         imageController.deleteFilesByDownloadsId(downloads_id);
-
-        List<DownloadFileDaoEntity> existedDownloadFiles = imageDao.getDownloadFilesNameByDownloadId(downloads_id);
-        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadFilePath;
-
-        for (DownloadFileDaoEntity downloadFile : existedDownloadFiles) {
-            deletePhysicalFile(absolutePath, downloadFile.getFile_path());
-        }
     }
-
-    private void deletePhysicalFile(String absolutePath, String filePath) {
-        String lastImgPath = absolutePath + filePath.replace("/files", "");
-        File file = new File(lastImgPath);
-        if (file.exists()) {
-            if (file.delete()) {
-                System.out.println("File delete successfully");
-            } else {
-                System.out.println("Failed to delete file");
-            }
-        } else {
-            System.out.println("File not found");
-        }
-    }
-
 }

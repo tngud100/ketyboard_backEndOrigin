@@ -5,6 +5,8 @@ import com.example.keyboard.entity.Image.download.DownloadFileDaoEntity;
 import com.example.keyboard.entity.Image.inquire.InquireDaoEntity;
 import com.example.keyboard.entity.Image.product.ProductDaoEntity;
 import com.example.keyboard.entity.Image.product.ProductImageEntity;
+import com.example.keyboard.entity.board.download.DownloadEntity;
+import com.example.keyboard.entity.board.notice.NoticeEntity;
 import com.example.keyboard.entity.product.ProductEntity;
 import com.example.keyboard.repository.ImageDao;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +21,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -443,11 +444,127 @@ public class ImgUploadService {
         }
     }
 
+
+
+
+    public String uploadEditorImage(MultipartFile file) throws Exception{
+        // 파일 저장 경로 생성
+        String uniqueFilename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        String absolutePath = new File("").getAbsolutePath() + new File(uploadPath);
+        File destinationDir = new File(absolutePath + File.separator + "editor");
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs(); // 디렉토리가 없으면 생성
+        }
+        File destinationFile = new File(destinationDir, uniqueFilename);
+
+        file.transferTo(destinationFile);
+
+        return uniqueFilename;
+    }
+
+    public void deleteEditorImage(String originalFileName) throws Exception{
+        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
+
+        String lastImgPath = absolutePath + File.separator + "editor";
+        File file = new File(lastImgPath, originalFileName);
+        if (file.exists()) {
+            if (file.delete()) {
+                System.out.println("File delete successfully");
+            } else {
+                System.out.println("Failed to delete file");
+            }
+        } else {
+            System.out.println("File not found");
+        }
+    }
+
+    public void moveEditorImages(String imageUrl) throws Exception {
+        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
+        String editorPath = absolutePath + "/editor";
+        String imagesPath = absolutePath;
+        String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+
+        Path srcPath = Paths.get(editorPath, fileName);
+        Path destPath = Paths.get(imagesPath, fileName);
+
+        // 파일 존재 여부 확인
+        if (!Files.exists(srcPath)) {
+            throw new NoSuchFileException("Source file not found: " + srcPath.toString());
+        }
+
+        // 파일 이동
+        try {
+            Files.move(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("File moved successfully: " + fileName);
+        } catch (IOException e) {
+            System.err.println("Failed to move file: " + fileName);
+            e.printStackTrace();
+            throw new Exception("File move failed", e);
+        }
+    }
+
+    public void enrollEditorImageToDatabase(String originalName, String path, Long board_id, int board_type) throws Exception{
+        if(board_type == 1){
+            imageDao.saveNoticePictures(board_id, path, originalName);
+        }else if(board_type == 2){
+            imageDao.saveFaqPictures(board_id, path, originalName);
+        }else if(board_type == 3){
+            imageDao.saveDownloadPictures(board_id, path, originalName);
+        }
+    }
+
+
+
+
+
     // 다운로드 게시판 파일 다운로드
     public void uploadDownloadFile(List<MultipartFile> files, Long downloads_id) throws Exception {
         for (MultipartFile file : files) {
             saveFile(file, downloads_id);
         }
+    }
+
+    public void updateDownloadFiles(DownloadEntity downloadEntity) throws Exception{
+        List<MultipartFile> files = downloadEntity.getFiles();
+        List<String> existingFileNames = downloadEntity.getExistedFileNames();
+        Long downloads_id = downloadEntity.getDownloads_id();
+
+        if (existingFileNames == null) {
+            existingFileNames = new ArrayList<>();
+        }
+        if (files == null) {
+            files = new ArrayList<>();
+        }
+
+        List<DownloadFileDaoEntity> existedDownloadFiles = imageDao.getDownloadFilesByDownloadId(downloads_id);
+
+        for (DownloadFileDaoEntity downloadFile : existedDownloadFiles) {
+            if (!existingFileNames.contains(downloadFile.getFile_name())) {
+                deleteFilesByDownloadFilesId(downloadFile.getDownload_file_id());
+            }
+        }
+        if (!files.isEmpty()) {
+            uploadDownloadFile(files, downloads_id);
+        }
+    }
+
+    public void deleteFilesByDownloadFilesId(Long download_file_id) throws Exception{
+        DownloadFileDaoEntity existedDownloadFiles = imageDao.getDownloadFilesByDownloadFileId(download_file_id);
+        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadFilePath;
+        deletePhysicalFile(absolutePath, existedDownloadFiles.getFile_path());
+
+        imageDao.deleteFilesByDownloadFilesId(download_file_id);
+    }
+
+    public void deleteFilesByDownloadsId(Long downloads_id) throws Exception{
+        List<DownloadFileDaoEntity> existedDownloadFiles = imageDao.getDownloadFilesByDownloadId(downloads_id);
+        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadFilePath;
+
+        for (DownloadFileDaoEntity downloadFile : existedDownloadFiles) {
+            deletePhysicalFile(absolutePath, downloadFile.getFile_path());
+        }
+
+        imageDao.deleteFilesByDownloadsId(downloads_id);
     }
 
     private void saveFile(MultipartFile file, Long downloads_id) throws Exception {
@@ -476,10 +593,17 @@ public class ImgUploadService {
         imageDao.saveDownloadFiles(fileVO);
     }
 
-    public void deleteFilesByDownloadFilesId(Long download_file_id) throws Exception{
-        imageDao.deleteFilesByDownloadFilesId(download_file_id);
-    }
-    public void deleteFilesByDownloadsId(Long downloads_id) throws Exception{
-        imageDao.deleteFilesByDownloadsId(downloads_id);
+    private void deletePhysicalFile(String absolutePath, String filePath) {
+        String lastImgPath = absolutePath + filePath.replace("/files", "");
+        File file = new File(lastImgPath);
+        if (file.exists()) {
+            if (file.delete()) {
+                System.out.println("File delete successfully");
+            } else {
+                System.out.println("Failed to delete file");
+            }
+        } else {
+            System.out.println("File not found");
+        }
     }
 }

@@ -2,6 +2,8 @@ package com.example.keyboard.repository;
 
 import com.example.keyboard.entity.Image.download.DownloadDaoEntity;
 import com.example.keyboard.entity.Image.download.DownloadFileDaoEntity;
+import com.example.keyboard.entity.Image.faq.FaqDaoEntity;
+import com.example.keyboard.entity.Image.notice.NoticeDaoEntity;
 import com.example.keyboard.entity.Image.product.ProductDaoEntity;
 import com.example.keyboard.entity.Image.inquire.InquireDaoEntity;
 import org.apache.ibatis.annotations.Mapper;
@@ -28,9 +30,13 @@ public interface ImageDao {
     public void deleteInquirePicturesByPictureId(@Param("inquire_picture_id") Long inquire_picture_id) throws Exception;
 
 
+    public void saveNoticePictures(@Param("notices_id") Long notices_id, @Param("picture_path") String picture_path, @Param("picture_name") String picture_name) throws Exception;
+    public void saveFaqPictures(@Param("faqs_id") Long faqs_id, @Param("picture_path") String picture_path, @Param("picture_name") String picture_name) throws Exception;
+    public void saveDownloadPictures(@Param("downloads_id") Long downloads_id, @Param("picture_path") String picture_path, @Param("picture_name") String picture_name) throws Exception;
 
     public void saveDownloadFiles(DownloadFileDaoEntity fileVO) throws Exception;
-    public List<DownloadFileDaoEntity> getDownloadFilesNameByDownloadId(@Param("downloads_id") Long downloads_id) throws Exception;
+    public DownloadFileDaoEntity getDownloadFilesByDownloadFileId(@Param("downloads_id") Long downloads_id) throws Exception;
+    public List<DownloadFileDaoEntity> getDownloadFilesByDownloadId(@Param("downloads_id") Long downloads_id) throws Exception;
     public void deleteFilesByDownloadFilesId(@Param("download_file_id") Long download_file_id) throws Exception;
     public void deleteFilesByDownloadsId(@Param("downloads_id") Long downloads_id) throws Exception;
 }

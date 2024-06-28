@@ -12,7 +12,7 @@
         SELECT * FROM notices WHERE notices_id = #{notices_id} AND isdelete = 0 ORDER BY regdate ASC;
     </select>
 
-    <insert id="enrollNoticeBoard" parameterType="NoticeEntity" >
+    <insert id="enrollNoticeBoard" parameterType="NoticeEntity" useGeneratedKeys="true" keyProperty="notices_id">
         INSERT INTO notices(title, content)
         VALUES (#{title}, #{content})
     </insert>
@@ -38,7 +38,7 @@
         SELECT * FROM faqs WHERE faqs_id = #{faqs_id} AND isdelete = 0 ORDER BY regdate ASC;
     </select>
 
-    <insert id="enrollFaqBoard" parameterType="FaqEntity" >
+    <insert id="enrollFaqBoard" parameterType="FaqEntity" useGeneratedKeys="true" keyProperty="faqs_id">
         INSERT INTO faqs(category, title, ask, comment)
         VALUES (#{category}, #{title}, #{ask}, #{comment})
     </insert>
@@ -61,19 +61,19 @@
 
     <!-- 다운로드 -->
     <select id="selectDownloadAllBoard" resultType="DownloadEntity">
-        SELECT * FROM download WHERE isdelete = 0 ORDER BY regdate ASC;
+        SELECT * FROM downloads WHERE isdelete = 0 ORDER BY regdate ASC;
     </select>
     <select id="getDownloadByDownloadId" resultType="DownloadEntity">
-        SELECT * FROM download WHERE downloads_id = #{downloads_id} AND isdelete = 0 ORDER BY regdate ASC;
+        SELECT * FROM downloads WHERE downloads_id = #{downloads_id} AND isdelete = 0 ORDER BY regdate ASC;
     </select>
 
     <insert id="enrollDownloadBoard" parameterType="DownloadEntity" useGeneratedKeys="true" keyProperty="downloads_id">
-        INSERT INTO download(category, title, content)
+        INSERT INTO downloads(category, title, content)
         VALUES (#{category}, #{title}, #{content})
     </insert>
 
     <update id="updateDownloadBoard" parameterType="DownloadEntity">
-        UPDATE download
+        UPDATE downloads
         SET category = #{category},
             title = #{title},
             content = #{content}
@@ -81,7 +81,7 @@
     </update>
 
     <update id="deleteDownloadBoard" parameterType="Long">
-        UPDATE download
+        UPDATE downloads
         SET  isdelete = 1
         WHERE downloads_id = #{downloads_id}
     </update>

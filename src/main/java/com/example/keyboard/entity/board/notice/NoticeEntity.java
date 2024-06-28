@@ -2,6 +2,8 @@ package com.example.keyboard.entity.board.notice;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class NoticeEntity {
     private Long notices_id;
@@ -9,5 +11,6 @@ public class NoticeEntity {
     private String content;
     private String modified_date;
     private String regdate;
+    private List<String> imageUrls;
     private int isdelete;
 }
