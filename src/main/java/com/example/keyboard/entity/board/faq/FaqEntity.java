@@ -14,5 +14,6 @@ public class FaqEntity {
     private String regdate;
     private String modified_date;
     private List<String> imageUrls;
+    private List<String> deleteImageUrls;
     private int isdelete;
 }

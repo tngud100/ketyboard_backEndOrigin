@@ -16,5 +16,6 @@ public class DownloadEntity {
     private List<MultipartFile> files;
     private List<String> existedFileNames;
     private List<String> imageUrls;
+    private List<String> deleteImageUrls;
     private int isdelete;
 }

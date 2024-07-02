@@ -2,13 +2,16 @@ package com.example.keyboard.service;
 
 import com.example.keyboard.entity.Image.download.DownloadDaoEntity;
 import com.example.keyboard.entity.Image.download.DownloadFileDaoEntity;
+import com.example.keyboard.entity.Image.faq.FaqDaoEntity;
 import com.example.keyboard.entity.Image.inquire.InquireDaoEntity;
+import com.example.keyboard.entity.Image.notice.NoticeDaoEntity;
 import com.example.keyboard.entity.Image.product.ProductDaoEntity;
 import com.example.keyboard.entity.Image.product.ProductImageEntity;
 import com.example.keyboard.entity.board.download.DownloadEntity;
 import com.example.keyboard.entity.board.notice.NoticeEntity;
 import com.example.keyboard.entity.product.ProductEntity;
 import com.example.keyboard.repository.ImageDao;
+import com.mysql.cj.protocol.x.Notice;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -446,7 +449,7 @@ public class ImgUploadService {
 
 
 
-
+    /// 에디터 이미지 로드 및 삭제
     public String uploadEditorImage(MultipartFile file) throws Exception{
         // 파일 저장 경로 생성
         String uniqueFilename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
@@ -487,10 +490,10 @@ public class ImgUploadService {
         Path srcPath = Paths.get(editorPath, fileName);
         Path destPath = Paths.get(imagesPath, fileName);
 
-        // 파일 존재 여부 확인
-        if (!Files.exists(srcPath)) {
-            throw new NoSuchFileException("Source file not found: " + srcPath.toString());
-        }
+//        // 파일 존재 여부 확인
+//        if (!Files.exists(srcPath)) {
+//            throw new NoSuchFileException("Source file not found: " + srcPath.toString());
+//        }
 
         // 파일 이동
         try {
@@ -512,7 +515,105 @@ public class ImgUploadService {
             imageDao.saveDownloadPictures(board_id, path, originalName);
         }
     }
+    public void deleteBoardPicturesByBoardPicturesId(List<String> deletedImageUrls, Long board_id, int board_type) throws Exception{
+        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
+        if (board_type == 1) {
+            List<NoticeDaoEntity> noticePictures = imageDao.selectNoticePicturesByNoticesId(board_id);
+            deletePicturesFromDatabase(deletedImageUrls, noticePictures, absolutePath, board_type);
+        } else if (board_type == 2) {
+            List<FaqDaoEntity> faqPictures = imageDao.selectFaqPicturesByFaqsId(board_id);
+            deletePicturesFromDatabase(deletedImageUrls, faqPictures, absolutePath, board_type);
+        } else if (board_type == 3) {
+            List<DownloadDaoEntity> downloadPictures = imageDao.selectDownloadPicturesByDownloadsId(board_id);
+            deletePicturesFromDatabase(deletedImageUrls, downloadPictures, absolutePath, board_type);
+        } else {
+            throw new IllegalArgumentException("Invalid board_type: " + board_type);
+        }
+    }
 
+    public void deleteBoardPicturesByBoardId(Long board_id, int board_type) throws Exception{
+        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
+        if(board_type == 1){
+            List<NoticeDaoEntity> noticePictures = imageDao.selectNoticePicturesByNoticesId(board_id);
+            deletePictures(noticePictures, absolutePath);
+            imageDao.deleteNoticePicturesByNoticesId(board_id);
+
+        } else if (board_type == 2) {
+            List<FaqDaoEntity> faqPictures = imageDao.selectFaqPicturesByFaqsId(board_id);
+            deletePictures(faqPictures, absolutePath);
+            imageDao.deleteFaqsByFaqsId(board_id);
+
+        } else if (board_type == 3) {
+            List<DownloadDaoEntity> downloadPictures = imageDao.selectDownloadPicturesByDownloadsId(board_id);
+            deletePictures(downloadPictures, absolutePath);
+            imageDao.deleteDownloadsByDownloadsId(board_id);
+        } else {
+            throw new IllegalArgumentException("Invalid board_type: " + board_type);
+        }
+    }
+    private void deletePicturesFromDatabase(List<String> deletedImageUrls, List<? extends Object> pictures, String absolutePath, int board_type) throws Exception {
+        for (Object picture : pictures) {
+            String picturePath = "";
+            Long pictureId = null;
+
+            if (picture instanceof NoticeDaoEntity) {
+                picturePath = ((NoticeDaoEntity) picture).getPicture_path();
+                pictureId = ((NoticeDaoEntity) picture).getNotice_picture_id();
+            } else if (picture instanceof FaqDaoEntity) {
+                picturePath = ((FaqDaoEntity) picture).getPicture_path();
+                pictureId = ((FaqDaoEntity) picture).getFaqs_picture_id();
+            } else if (picture instanceof DownloadDaoEntity) {
+                picturePath = ((DownloadDaoEntity) picture).getPicture_path();
+                pictureId = ((DownloadDaoEntity) picture).getDownload_picture_id();
+            }
+
+            String fullPicturePath = absolutePath + picturePath.replace("/images", "");
+
+            if (deletedImageUrls.contains(picturePath)) {
+                File file = new File(fullPicturePath);
+                if (file.exists() && file.delete()) {
+                    System.out.println("File deleted successfully: " + fullPicturePath);
+                } else {
+                    System.out.println("Failed to delete file: " + fullPicturePath);
+                }
+
+                // 데이터베이스에서 삭제
+                if (board_type == 1) {
+                    imageDao.deleteNoticePicturesByNoticePictureId(pictureId);
+                } else if (board_type == 2) {
+                    imageDao.deleteFaqPicturesByFaqPictureId(pictureId);
+                } else if (board_type == 3) {
+                    imageDao.deleteDownloadPicturesByDownloadPicturesId(pictureId);
+                }
+            }
+        }
+    }
+
+    private void deletePictures(List<? extends Object> pictures, String absolutePath) throws Exception {
+        for (Object picture : pictures) {
+            String picturePath = "";
+            if (picture instanceof NoticeDaoEntity) {
+                picturePath = ((NoticeDaoEntity) picture).getPicture_path();
+            } else if (picture instanceof FaqDaoEntity) {
+                picturePath = ((FaqDaoEntity) picture).getPicture_path();
+            } else if (picture instanceof DownloadDaoEntity) {
+                picturePath = ((DownloadDaoEntity) picture).getPicture_path();
+            }
+
+            String originalPicturePath = picturePath.replace("/images", "");
+            File file = new File(absolutePath, originalPicturePath);
+
+            if (file.exists()) {
+                if (file.delete()) {
+                    System.out.println("File deleted successfully: " + originalPicturePath);
+                } else {
+                    System.out.println("Failed to delete file: " + originalPicturePath);
+                }
+            } else {
+                System.out.println("File not found: " + originalPicturePath);
+            }
+        }
+    }
 
 
 

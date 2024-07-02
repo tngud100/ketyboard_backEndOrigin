@@ -49,14 +49,45 @@
         INSERT INTO noticepictures(notices_id, picture_path, picture_name)
         VALUES (#{notices_id}, #{picture_path}, #{picture_name})
     </insert>
+    <select id="selectNoticePicturesByNoticesId" parameterType="Long">
+        SELECT * from noticepictures WHERE notices_id = #{notices_id}
+    </select>
+    <delete id="deleteNoticePicturesByNoticesId" parameterType="Long">
+        DELETE FROM noticepictures WHERE notices_id = #{notices_id}
+    </delete>
+    <delete id="deleteNoticePicturesByNoticePictureId" parameterType="Long">
+        DELETE FROM noticepictures WHERE notice_picture_id = #{notice_picture_id}
+    </delete>
+
     <insert id="saveFaqPictures" parameterType="FaqDaoEntity">
         INSERT INTO faqpictures(faqs_id, picture_path, picture_name)
         VALUES (#{faqs_id}, #{picture_path}, #{picture_name})
     </insert>
+    <select id="selectFaqPicturesByFaqsId" parameterType="Long">
+        SELECT * from faqpictures WHERE faqs_id = #{faqs_id}
+    </select>
+    <delete id="deleteFaqsByFaqsId" parameterType="Long">
+        DELETE FROM faqpictures WHERE faqs_id = #{faqs_id}
+    </delete>
+    <delete id="deleteFaqPicturesByFaqPictureId" parameterType="Long">
+        DELETE FROM faqpictures WHERE faq_picture_id = #{faq_picture_id}
+    </delete>
+
     <insert id="saveDownloadPictures" parameterType="DownloadDaoEntity">
-    INSERT INTO downloadpictures(downloads_id, picture_path, picture_name)
-    VALUES (#{downloads_id}, #{picture_path}, #{picture_name})
-</insert>
+        INSERT INTO downloadpictures(downloads_id, picture_path, picture_name)
+        VALUES (#{downloads_id}, #{picture_path}, #{picture_name})
+    </insert>
+    <select id="selectDownloadPicturesByNoticesId" parameterType="Long">
+        SELECT * from downloadpictures WHERE downloads_id = #{downloads_id}
+    </select>
+    <delete id="deleteDownloadsByDownloadsId" parameterType="Long">
+        DELETE FROM downloadpictures WHERE downloads_id = #{downloads_id}
+    </delete>
+    <delete id="deleteDownloadPicturesByDownloadPicturesId" parameterType="Long">
+        DELETE FROM downloadpictures WHERE download_picture_id = #{download_picture_id}
+    </delete>
+
+
 
 
     <insert id="saveDownloadFiles" parameterType="DownloadFileDaoEntity">

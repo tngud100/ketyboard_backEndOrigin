@@ -3,6 +3,7 @@
     import com.example.keyboard.entity.Image.download.DownloadFileDaoEntity;
     import com.example.keyboard.entity.Image.inquire.InquireDaoEntity;
     import com.example.keyboard.entity.Image.inquire.InquireImageEntity;
+    import com.example.keyboard.entity.Image.notice.NoticeDaoEntity;
     import com.example.keyboard.entity.Image.product.ProductDaoEntity;
     import com.example.keyboard.entity.Image.product.ProductImageEntity;
     import com.example.keyboard.entity.board.download.DownloadEntity;
@@ -194,12 +195,26 @@
             for(String imgUrl : imageUrls){
                 String imgName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
                 String[] originalName = imgName.split("_",2);
-                String path = "/images"+ File.separator + imgName;
+                String path = "/images/" + imgName;
 
                 imgUploadService.moveEditorImages(imgUrl);
                 imgUploadService.enrollEditorImageToDatabase(originalName[1], path, board_id, board_type);
             }
         }
+
+        public void updateEditorPicture(List<String> imageUrls, List<String> deletedImageUrls, Long board_id, int board_type) throws Exception{
+            if(!imageUrls.isEmpty()){
+                enrollEditorPictures(imageUrls, board_id, board_type);
+            }
+            if(!deletedImageUrls.isEmpty()){
+                imgUploadService.deleteBoardPicturesByBoardPicturesId(deletedImageUrls, board_id, board_type);
+            }
+        }
+
+        public void deleteEditorPictures(Long board_id, int board_type) throws Exception{
+            imgUploadService.deleteBoardPicturesByBoardId(board_id, board_type);
+        }
+
 
 
         public void enrollDownloadFiles(List<MultipartFile> files, Long downloads_id) throws Exception{

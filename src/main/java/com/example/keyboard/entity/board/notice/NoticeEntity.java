@@ -12,5 +12,6 @@ public class NoticeEntity {
     private String modified_date;
     private String regdate;
     private List<String> imageUrls;
+    private List<String> deleteImageUrls;
     private int isdelete;
 }
