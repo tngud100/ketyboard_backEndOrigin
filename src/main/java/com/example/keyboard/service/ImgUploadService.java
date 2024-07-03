@@ -453,7 +453,7 @@ public class ImgUploadService {
     public String uploadEditorImage(MultipartFile file) throws Exception{
         // 파일 저장 경로 생성
         String uniqueFilename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        String absolutePath = new File("").getAbsolutePath() + new File(uploadPath);
+        String absolutePath = new File("").getAbsolutePath() + File.separator + uploadPath;
         File destinationDir = new File(absolutePath + File.separator + "editor");
         if (!destinationDir.exists()) {
             destinationDir.mkdirs(); // 디렉토리가 없으면 생성
@@ -466,6 +466,15 @@ public class ImgUploadService {
     }
 
     public void deleteEditorImage(String originalFileName) throws Exception{
+        String picturePath = "/images" + "\\" + originalFileName;
+        List<NoticeDaoEntity> noticeDaoEntity = imageDao.selectNoticePicturesByPicturePath(picturePath);
+        List<FaqDaoEntity> faqDaoEntity = imageDao.selectFaqPicturesByPicturePath(picturePath);
+        List<DownloadDaoEntity> downloadDaoEntity = imageDao.selectDownloadPicturesByPicturePath(picturePath);
+
+        if (!noticeDaoEntity.isEmpty() || !faqDaoEntity.isEmpty() || !downloadDaoEntity.isEmpty()) {
+            return;
+        }
+
         String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
 
         String lastImgPath = absolutePath + File.separator + "editor";
@@ -474,26 +483,27 @@ public class ImgUploadService {
             if (file.delete()) {
                 System.out.println("File delete successfully");
             } else {
-                System.out.println("Failed to delete file");
+                System.out.println("Already deleted Or Failed to delete file");
             }
         } else {
             System.out.println("File not found");
+            throw new NoSuchFileException("Source file not found: " + lastImgPath + originalFileName);
         }
     }
 
     public void moveEditorImages(String imageUrl) throws Exception {
-        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
-        String editorPath = absolutePath + "/editor";
+        String absolutePath = new File("").getAbsolutePath() + File.separator + uploadPath;
+        String editorPath = absolutePath + File.separator + "editor";
         String imagesPath = absolutePath;
         String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
 
-        Path srcPath = Paths.get(editorPath, fileName);
-        Path destPath = Paths.get(imagesPath, fileName);
+        Path srcPath = Paths.get(editorPath, fileName).normalize();
+        Path destPath = Paths.get(imagesPath, fileName).normalize();
 
-//        // 파일 존재 여부 확인
-//        if (!Files.exists(srcPath)) {
-//            throw new NoSuchFileException("Source file not found: " + srcPath.toString());
-//        }
+        // 파일 존재 여부 확인
+        if (!Files.exists(srcPath)) {
+            throw new NoSuchFileException("Source file not found: " + srcPath.toString());
+        }
 
         // 파일 이동
         try {
@@ -567,7 +577,7 @@ public class ImgUploadService {
                 pictureId = ((DownloadDaoEntity) picture).getDownload_picture_id();
             }
 
-            String fullPicturePath = absolutePath + picturePath.replace("/images", "");
+            String fullPicturePath = absolutePath + picturePath.replace("/images" + File.separator, "/");
 
             if (deletedImageUrls.contains(picturePath)) {
                 File file = new File(fullPicturePath);

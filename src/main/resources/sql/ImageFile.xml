@@ -52,6 +52,9 @@
     <select id="selectNoticePicturesByNoticesId" parameterType="Long">
         SELECT * from noticepictures WHERE notices_id = #{notices_id}
     </select>
+    <select id="selectNoticePicturesByPicturePath" parameterType="String">
+        SELECT * from noticepictures WHERE picture_path = #{picture_path}
+    </select>
     <delete id="deleteNoticePicturesByNoticesId" parameterType="Long">
         DELETE FROM noticepictures WHERE notices_id = #{notices_id}
     </delete>
@@ -66,6 +69,9 @@
     <select id="selectFaqPicturesByFaqsId" parameterType="Long">
         SELECT * from faqpictures WHERE faqs_id = #{faqs_id}
     </select>
+    <select id="selectFaqPicturesByPicturePath" parameterType="String">
+        SELECT * from faqpictures WHERE picture_path = #{picture_path}
+    </select>
     <delete id="deleteFaqsByFaqsId" parameterType="Long">
         DELETE FROM faqpictures WHERE faqs_id = #{faqs_id}
     </delete>
@@ -79,6 +85,9 @@
     </insert>
     <select id="selectDownloadPicturesByNoticesId" parameterType="Long">
         SELECT * from downloadpictures WHERE downloads_id = #{downloads_id}
+    </select>
+    <select id="selectDownloadPicturesByPicturePath" parameterType="String">
+        SELECT * from downloadpictures WHERE picture_path = #{picture_path}
     </select>
     <delete id="deleteDownloadsByDownloadsId" parameterType="Long">
         DELETE FROM downloadpictures WHERE downloads_id = #{downloads_id}

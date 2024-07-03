@@ -195,7 +195,7 @@
             for(String imgUrl : imageUrls){
                 String imgName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
                 String[] originalName = imgName.split("_",2);
-                String path = "/images/" + imgName;
+                String path = "/images" + File.separator + imgName;
 
                 imgUploadService.moveEditorImages(imgUrl);
                 imgUploadService.enrollEditorImageToDatabase(originalName[1], path, board_id, board_type);
@@ -203,11 +203,11 @@
         }
 
         public void updateEditorPicture(List<String> imageUrls, List<String> deletedImageUrls, Long board_id, int board_type) throws Exception{
-            if(!imageUrls.isEmpty()){
-                enrollEditorPictures(imageUrls, board_id, board_type);
-            }
             if(!deletedImageUrls.isEmpty()){
                 imgUploadService.deleteBoardPicturesByBoardPicturesId(deletedImageUrls, board_id, board_type);
+            }
+            if(!imageUrls.isEmpty()){
+                enrollEditorPictures(imageUrls, board_id, board_type);
             }
         }
 

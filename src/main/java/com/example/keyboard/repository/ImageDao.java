@@ -32,16 +32,19 @@ public interface ImageDao {
 
     public void saveNoticePictures(@Param("notices_id") Long notices_id, @Param("picture_path") String picture_path, @Param("picture_name") String picture_name) throws Exception;
     public List<NoticeDaoEntity> selectNoticePicturesByNoticesId(@Param("notices_id") Long notices_id) throws Exception;
+    public List<NoticeDaoEntity> selectNoticePicturesByPicturePath(@Param("picture_path") String picture_path) throws Exception;
     public void deleteNoticePicturesByNoticesId(@Param("notices_id") Long notices_id) throws Exception;
     public void deleteNoticePicturesByNoticePictureId(@Param("notice_picture_id") Long notice_picture_id) throws Exception;
 
     public void saveFaqPictures(@Param("faqs_id") Long faqs_id, @Param("picture_path") String picture_path, @Param("picture_name") String picture_name) throws Exception;
     public List<FaqDaoEntity> selectFaqPicturesByFaqsId(@Param("faqs_id") Long faqs_id) throws Exception;
+    public List<FaqDaoEntity> selectFaqPicturesByPicturePath(@Param("picture_path") String picture_path) throws Exception;
     public void deleteFaqsByFaqsId(@Param("faqs_id") Long faqs_id) throws Exception;
     public void deleteFaqPicturesByFaqPictureId(@Param("faq_picture_id") Long faq_picture_id) throws Exception;
 
     public void saveDownloadPictures(@Param("downloads_id") Long downloads_id, @Param("picture_path") String picture_path, @Param("picture_name") String picture_name) throws Exception;
     public List<DownloadDaoEntity> selectDownloadPicturesByDownloadsId(@Param("downloads_id") Long downloads_id) throws Exception;
+    public List<DownloadDaoEntity> selectDownloadPicturesByPicturePath(@Param("picture_path") String picture_path) throws Exception;
     public void deleteDownloadsByDownloadsId(@Param("downloads_id") Long downloads_id) throws Exception;
     public void deleteDownloadPicturesByDownloadPicturesId(@Param("download_picture_id") Long download_picture_id) throws Exception;
 
