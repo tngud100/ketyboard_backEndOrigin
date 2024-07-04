@@ -1,12 +1,15 @@
     package com.example.keyboard.controller;
 
+    import com.example.keyboard.entity.Image.download.DownloadDaoEntity;
     import com.example.keyboard.entity.Image.download.DownloadFileDaoEntity;
+    import com.example.keyboard.entity.Image.faq.FaqDaoEntity;
     import com.example.keyboard.entity.Image.inquire.InquireDaoEntity;
     import com.example.keyboard.entity.Image.inquire.InquireImageEntity;
     import com.example.keyboard.entity.Image.notice.NoticeDaoEntity;
     import com.example.keyboard.entity.Image.product.ProductDaoEntity;
     import com.example.keyboard.entity.Image.product.ProductImageEntity;
     import com.example.keyboard.entity.board.download.DownloadEntity;
+    import com.example.keyboard.repository.ImageDao;
     import com.example.keyboard.service.ImgUploadService;
     import io.swagger.v3.oas.annotations.Operation;
     import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,9 +39,11 @@
     public class ImageController {
 
         private final ImgUploadService imgUploadService;
+        private final ImageDao imageDao;
 
-        public ImageController(ImgUploadService imgUploadService) {
+        public ImageController(ImgUploadService imgUploadService, ImageDao imageDao) {
             this.imgUploadService = imgUploadService;
+            this.imageDao = imageDao;
         }
         @Value("${upload.path}") // application.properties에 설정된 이미지 업로드 경로를 가져옵니다.
         private String uploadPath;
@@ -191,18 +196,20 @@
         // 게시글 수정시에는 url확인 후 삭제
 
         // board_type 1일때 notice, 2일때 faq, 3일때 download
-        public void enrollEditorPictures(List<String> imageUrls, Long board_id, int board_type) throws Exception{
-            for(String imgUrl : imageUrls){
+        public void enrollEditorPictures(List<String> imageUrls, Long board_id, int board_type) throws Exception {
+            for (String imgUrl : imageUrls) {
                 String imgName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
-                String[] originalName = imgName.split("_",2);
-                String path = "/images" + File.separator + imgName;
+                String[] originalName = imgName.split("_", 2);
+                String path = "/images/" + imgName;
 
-                imgUploadService.moveEditorImages(imgUrl);
-                imgUploadService.enrollEditorImageToDatabase(originalName[1], path, board_id, board_type);
+                imgUploadService.moveEditorImages(imgUrl, board_id, board_type);
+                imgUploadService.enrollEditorImageToDatabase(originalName[1], path, imgUrl, board_id, board_type);
             }
         }
 
+
         public void updateEditorPicture(List<String> imageUrls, List<String> deletedImageUrls, Long board_id, int board_type) throws Exception{
+            // front deleteSize가 너무 이상함 이전에 올렸던 모든 이미지가 DELETEDIMAGEURLS로 잡힘
             if(!deletedImageUrls.isEmpty()){
                 imgUploadService.deleteBoardPicturesByBoardPicturesId(deletedImageUrls, board_id, board_type);
             }

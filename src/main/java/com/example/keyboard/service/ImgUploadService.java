@@ -453,8 +453,8 @@ public class ImgUploadService {
     public String uploadEditorImage(MultipartFile file) throws Exception{
         // 파일 저장 경로 생성
         String uniqueFilename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        String absolutePath = new File("").getAbsolutePath() + File.separator + uploadPath;
-        File destinationDir = new File(absolutePath + File.separator + "editor");
+        String absolutePath = new File("").getAbsolutePath() + "/" + uploadPath;
+        File destinationDir = new File(absolutePath + "/" + "editor");
         if (!destinationDir.exists()) {
             destinationDir.mkdirs(); // 디렉토리가 없으면 생성
         }
@@ -466,7 +466,7 @@ public class ImgUploadService {
     }
 
     public void deleteEditorImage(String originalFileName) throws Exception{
-        String picturePath = "/images" + "\\" + originalFileName;
+        String picturePath = "/images/"  + originalFileName;
         List<NoticeDaoEntity> noticeDaoEntity = imageDao.selectNoticePicturesByPicturePath(picturePath);
         List<FaqDaoEntity> faqDaoEntity = imageDao.selectFaqPicturesByPicturePath(picturePath);
         List<DownloadDaoEntity> downloadDaoEntity = imageDao.selectDownloadPicturesByPicturePath(picturePath);
@@ -477,7 +477,7 @@ public class ImgUploadService {
 
         String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
 
-        String lastImgPath = absolutePath + File.separator + "editor";
+        String lastImgPath = absolutePath + "/" + "editor";
         File file = new File(lastImgPath, originalFileName);
         if (file.exists()) {
             if (file.delete()) {
@@ -491,9 +491,38 @@ public class ImgUploadService {
         }
     }
 
-    public void moveEditorImages(String imageUrl) throws Exception {
-        String absolutePath = new File("").getAbsolutePath() + File.separator + uploadPath;
-        String editorPath = absolutePath + File.separator + "editor";
+    public void moveEditorImages(String imageUrl, Long board_id, int board_type) throws Exception {
+        if (board_type == 1) {
+            String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
+            List<NoticeDaoEntity> noticeEntities = imageDao.selectNoticePicturesByNoticesId(board_id);
+            for (NoticeDaoEntity entity : noticeEntities) {
+                String picturePath = entity.getPicture_path();
+                if (existUrl.equals(picturePath)) {
+                    return;
+                }
+            }
+        } else if (board_type == 2) {
+            String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
+            List<FaqDaoEntity> faqEntities = imageDao.selectFaqPicturesByFaqsId(board_id);
+            for (FaqDaoEntity entity : faqEntities) {
+                String picturePath = entity.getPicture_path();
+                if (existUrl.equals(picturePath)) {
+                    return;
+                }
+            }
+        } else if (board_type == 3) {
+            String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
+            List<DownloadDaoEntity> downloadEntities = imageDao.selectDownloadPicturesByDownloadsId(board_id);
+            for (DownloadDaoEntity entity : downloadEntities) {
+                String picturePath = entity.getPicture_path();
+                if (existUrl.equals(picturePath)) {
+                    return;
+                }
+            }
+        }
+
+        String absolutePath = new File("").getAbsolutePath() + "/" + uploadPath;
+        String editorPath = absolutePath + "/" + "editor";
         String imagesPath = absolutePath;
         String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
 
@@ -516,12 +545,37 @@ public class ImgUploadService {
         }
     }
 
-    public void enrollEditorImageToDatabase(String originalName, String path, Long board_id, int board_type) throws Exception{
+    public void enrollEditorImageToDatabase(String originalName, String path, String imageUrl,Long board_id, int board_type) throws Exception{
         if(board_type == 1){
+            String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
+            List<NoticeDaoEntity> noticeEntities = imageDao.selectNoticePicturesByNoticesId(board_id);
+            for (NoticeDaoEntity entity : noticeEntities) {
+                String picturePath = entity.getPicture_path();
+                if (existUrl.equals(picturePath)) {
+                    return;
+                }
+            }
             imageDao.saveNoticePictures(board_id, path, originalName);
         }else if(board_type == 2){
+            String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
+            List<FaqDaoEntity> faqEntities = imageDao.selectFaqPicturesByFaqsId(board_id);
+            for (FaqDaoEntity entity : faqEntities) {
+                String picturePath = entity.getPicture_path();
+                if (existUrl.equals(picturePath)) {
+                    return;
+                }
+            }
             imageDao.saveFaqPictures(board_id, path, originalName);
+
         }else if(board_type == 3){
+                String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
+            List<DownloadDaoEntity> downloadEntities = imageDao.selectDownloadPicturesByDownloadsId(board_id);
+            for (DownloadDaoEntity entity : downloadEntities) {
+                String picturePath = entity.getPicture_path();
+                if (existUrl.equals(picturePath)) {
+                    return;
+                }
+            }
             imageDao.saveDownloadPictures(board_id, path, originalName);
         }
     }
@@ -576,8 +630,7 @@ public class ImgUploadService {
                 picturePath = ((DownloadDaoEntity) picture).getPicture_path();
                 pictureId = ((DownloadDaoEntity) picture).getDownload_picture_id();
             }
-
-            String fullPicturePath = absolutePath + picturePath.replace("/images" + File.separator, "/");
+            String fullPicturePath = absolutePath + picturePath.replace("/images", "");
 
             if (deletedImageUrls.contains(picturePath)) {
                 File file = new File(fullPicturePath);
