@@ -71,7 +71,7 @@ public class BoardService {
         Long faqs_id = faqEntity.getFaqs_id();
         List<String> imageUrls = faqEntity.getImageUrls();
         if(!imageUrls.isEmpty()){
-            imageController.enrollEditorPictures(imageUrls, faqs_id, 1);
+            imageController.enrollEditorPictures(imageUrls, faqs_id, 2);
         }
     }
 

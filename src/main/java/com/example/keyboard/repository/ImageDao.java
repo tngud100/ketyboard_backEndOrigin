@@ -50,7 +50,7 @@ public interface ImageDao {
 
 
     public void saveDownloadFiles(DownloadFileDaoEntity fileVO) throws Exception;
-    public DownloadFileDaoEntity getDownloadFilesByDownloadFileId(@Param("downloads_id") Long downloads_id) throws Exception;
+    public DownloadFileDaoEntity getDownloadFilesByDownloadFileId(@Param("download_file_id") Long download_file_id) throws Exception;
     public List<DownloadFileDaoEntity> getDownloadFilesByDownloadId(@Param("downloads_id") Long downloads_id) throws Exception;
     public void deleteFilesByDownloadFilesId(@Param("download_file_id") Long download_file_id) throws Exception;
     public void deleteFilesByDownloadsId(@Param("downloads_id") Long downloads_id) throws Exception;

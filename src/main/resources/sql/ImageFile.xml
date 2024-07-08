@@ -83,7 +83,7 @@
         INSERT INTO downloadpictures(downloads_id, picture_path, picture_name)
         VALUES (#{downloads_id}, #{picture_path}, #{picture_name})
     </insert>
-    <select id="selectDownloadPicturesByNoticesId" parameterType="Long">
+    <select id="selectDownloadPicturesByDownloadsId" parameterType="Long">
         SELECT * from downloadpictures WHERE downloads_id = #{downloads_id}
     </select>
     <select id="selectDownloadPicturesByPicturePath" parameterType="String">
