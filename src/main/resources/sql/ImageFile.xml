@@ -100,8 +100,8 @@
 
 
     <insert id="saveDownloadFiles" parameterType="DownloadFileDaoEntity">
-        INSERT INTO downloadfiles(downloads_id, file_path, file_name)
-        VALUES (#{downloads_id}, #{file_path}, #{file_name})
+        INSERT INTO downloadfiles(downloads_id, path, name)
+        VALUES (#{downloads_id}, #{path}, #{name})
     </insert>
     <select id="getDownloadFilesByDownloadFileId" parameterType="Long" resultType="DownloadFileDaoEntity">
         SELECT * FROM downloadfiles WHERE download_file_id = #{download_file_id} ORDER BY download_file_id ASC;

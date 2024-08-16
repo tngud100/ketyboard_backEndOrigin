@@ -1,5 +1,6 @@
 package com.example.keyboard.service;
 
+import com.example.keyboard.config.S3AWS.S3Config;
 import com.example.keyboard.entity.Image.download.DownloadDaoEntity;
 import com.example.keyboard.entity.Image.download.DownloadFileDaoEntity;
 import com.example.keyboard.entity.Image.faq.FaqDaoEntity;
@@ -11,6 +12,7 @@ import com.example.keyboard.entity.board.download.DownloadEntity;
 import com.example.keyboard.entity.board.notice.NoticeEntity;
 import com.example.keyboard.entity.product.ProductEntity;
 import com.example.keyboard.repository.ImageDao;
+import com.example.keyboard.repository.ProductDao;
 import com.mysql.cj.protocol.x.Notice;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
@@ -21,9 +23,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,8 +46,11 @@ public class ImgUploadService {
     private String uploadFilePath;
 
     private final ImageDao imageDao;
+
+    private final S3Upload s3Upload;
+
+    private final ProductDao productDao;
     private ProductDaoEntity fileEntity;
-    private final com.example.keyboard.repository.ProductDao productDao;
 
     public ProductDaoEntity uploadImg(MultipartFile multipartFile, Long product_id) throws Exception {
 
@@ -475,52 +483,10 @@ public class ImgUploadService {
             return;
         }
 
-        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
-
-        String lastImgPath = absolutePath + "/" + "editor";
-        File file = new File(lastImgPath, originalFileName);
-        if (file.exists()) {
-            if (file.delete()) {
-                System.out.println("File delete successfully");
-            } else {
-                System.out.println("Already deleted Or Failed to delete file");
-            }
-        } else {
-            System.out.println("File not found");
-            throw new NoSuchFileException("Source file not found: " + lastImgPath + originalFileName);
-        }
+        s3Upload.deleteFile(originalFileName);
     }
 
     public void moveEditorImages(String imageUrl, Long board_id, int board_type) throws Exception {
-        if (board_type == 1) {
-            String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
-            List<NoticeDaoEntity> noticeEntities = imageDao.selectNoticePicturesByNoticesId(board_id);
-            for (NoticeDaoEntity entity : noticeEntities) {
-                String picturePath = entity.getPicture_path();
-                if (existUrl.equals(picturePath)) {
-                    return;
-                }
-            }
-        } else if (board_type == 2) {
-            String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
-            List<FaqDaoEntity> faqEntities = imageDao.selectFaqPicturesByFaqsId(board_id);
-            for (FaqDaoEntity entity : faqEntities) {
-                String picturePath = entity.getPicture_path();
-                if (existUrl.equals(picturePath)) {
-                    return;
-                }
-            }
-        } else if (board_type == 3) {
-            String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
-            List<DownloadDaoEntity> downloadEntities = imageDao.selectDownloadPicturesByDownloadsId(board_id);
-            for (DownloadDaoEntity entity : downloadEntities) {
-                String picturePath = entity.getPicture_path();
-                if (existUrl.equals(picturePath)) {
-                    return;
-                }
-            }
-        }
-
         String absolutePath = new File("").getAbsolutePath() + "/" + uploadPath;
         String editorPath = absolutePath + "/" + "editor";
         String imagesPath = absolutePath;
@@ -545,101 +511,72 @@ public class ImgUploadService {
         }
     }
 
-    public void enrollEditorImageToDatabase(String originalName, String path, String imageUrl,Long board_id, int board_type) throws Exception{
+    public void enrollEditorImageToDatabase(String originalName, String path, Long board_id, int board_type) throws Exception{
         if(board_type == 1){
-            String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
-            List<NoticeDaoEntity> noticeEntities = imageDao.selectNoticePicturesByNoticesId(board_id);
-            for (NoticeDaoEntity entity : noticeEntities) {
-                String picturePath = entity.getPicture_path();
-                if (existUrl.equals(picturePath)) {
-                    return;
-                }
-            }
             imageDao.saveNoticePictures(board_id, path, originalName);
         }else if(board_type == 2){
-            String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
-            List<FaqDaoEntity> faqEntities = imageDao.selectFaqPicturesByFaqsId(board_id);
-            for (FaqDaoEntity entity : faqEntities) {
-                String picturePath = entity.getPicture_path();
-                if (existUrl.equals(picturePath)) {
-                    return;
-                }
-            }
             imageDao.saveFaqPictures(board_id, path, originalName);
-
         }else if(board_type == 3){
-                String existUrl = imageUrl.substring(imageUrl.indexOf("/images"));
-            List<DownloadDaoEntity> downloadEntities = imageDao.selectDownloadPicturesByDownloadsId(board_id);
-            for (DownloadDaoEntity entity : downloadEntities) {
-                String picturePath = entity.getPicture_path();
-                if (existUrl.equals(picturePath)) {
-                    return;
-                }
-            }
             imageDao.saveDownloadPictures(board_id, path, originalName);
         }
     }
-    public void deleteBoardPicturesByBoardPicturesId(List<String> deletedImageUrls, Long board_id, int board_type) throws Exception{
-        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
+    public void deleteBoardPicturesByBoardPicturesId(Long board_id, int board_type, List<String> deletedImageUrls) throws Exception{
         if (board_type == 1) {
             List<NoticeDaoEntity> noticePictures = imageDao.selectNoticePicturesByNoticesId(board_id);
-            deletePicturesFromDatabase(deletedImageUrls, noticePictures, absolutePath, board_type);
+            deletePicturesFromDatabase(noticePictures, deletedImageUrls,board_type);
         } else if (board_type == 2) {
             List<FaqDaoEntity> faqPictures = imageDao.selectFaqPicturesByFaqsId(board_id);
-            deletePicturesFromDatabase(deletedImageUrls, faqPictures, absolutePath, board_type);
+            deletePicturesFromDatabase(faqPictures, deletedImageUrls, board_type);
         } else if (board_type == 3) {
             List<DownloadDaoEntity> downloadPictures = imageDao.selectDownloadPicturesByDownloadsId(board_id);
-            deletePicturesFromDatabase(deletedImageUrls, downloadPictures, absolutePath, board_type);
+            deletePicturesFromDatabase(downloadPictures, deletedImageUrls, board_type);
         } else {
             throw new IllegalArgumentException("Invalid board_type: " + board_type);
         }
     }
 
     public void deleteBoardPicturesByBoardId(Long board_id, int board_type) throws Exception{
-        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
+//        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadPath;
         if(board_type == 1){
             List<NoticeDaoEntity> noticePictures = imageDao.selectNoticePicturesByNoticesId(board_id);
-            deletePictures(noticePictures, absolutePath);
+            deletePictures(noticePictures);
             imageDao.deleteNoticePicturesByNoticesId(board_id);
-
         } else if (board_type == 2) {
             List<FaqDaoEntity> faqPictures = imageDao.selectFaqPicturesByFaqsId(board_id);
-            deletePictures(faqPictures, absolutePath);
+            deletePictures(faqPictures);
             imageDao.deleteFaqsByFaqsId(board_id);
-
         } else if (board_type == 3) {
             List<DownloadDaoEntity> downloadPictures = imageDao.selectDownloadPicturesByDownloadsId(board_id);
-            deletePictures(downloadPictures, absolutePath);
+            deletePictures(downloadPictures);
             imageDao.deleteDownloadsByDownloadsId(board_id);
         } else {
             throw new IllegalArgumentException("Invalid board_type: " + board_type);
         }
     }
-    private void deletePicturesFromDatabase(List<String> deletedImageUrls, List<? extends Object> pictures, String absolutePath, int board_type) throws Exception {
+    private void deletePicturesFromDatabase(List<? extends Object> pictures, List<String>deletedImageUrls, int board_type) throws Exception {
         for (Object picture : pictures) {
             String picturePath = "";
             Long pictureId = null;
+            boolean isDelete = false;
 
             if (picture instanceof NoticeDaoEntity) {
                 picturePath = ((NoticeDaoEntity) picture).getPicture_path();
                 pictureId = ((NoticeDaoEntity) picture).getNotice_picture_id();
             } else if (picture instanceof FaqDaoEntity) {
                 picturePath = ((FaqDaoEntity) picture).getPicture_path();
-                pictureId = ((FaqDaoEntity) picture).getFaqs_picture_id();
+                pictureId = ((FaqDaoEntity) picture).getFaq_picture_id();
             } else if (picture instanceof DownloadDaoEntity) {
                 picturePath = ((DownloadDaoEntity) picture).getPicture_path();
                 pictureId = ((DownloadDaoEntity) picture).getDownload_picture_id();
             }
-            String fullPicturePath = absolutePath + picturePath.replace("/images", "");
 
-            if (deletedImageUrls.contains(picturePath)) {
-                File file = new File(fullPicturePath);
-                if (file.exists() && file.delete()) {
-                    System.out.println("File deleted successfully: " + fullPicturePath);
-                } else {
-                    System.out.println("Failed to delete file: " + fullPicturePath);
+            for(String deletedUrl : deletedImageUrls){
+                if(deletedUrl.equals(picturePath)){
+                    isDelete = s3Upload.deleteImageFromS3IfExists(picturePath);
                 }
+            }
 
+            if(isDelete){
                 // 데이터베이스에서 삭제
                 if (board_type == 1) {
                     imageDao.deleteNoticePicturesByNoticePictureId(pictureId);
@@ -652,7 +589,7 @@ public class ImgUploadService {
         }
     }
 
-    private void deletePictures(List<? extends Object> pictures, String absolutePath) throws Exception {
+    private void deletePictures(List<? extends Object> pictures) throws Exception {
         for (Object picture : pictures) {
             String picturePath = "";
             if (picture instanceof NoticeDaoEntity) {
@@ -663,18 +600,20 @@ public class ImgUploadService {
                 picturePath = ((DownloadDaoEntity) picture).getPicture_path();
             }
 
-            String originalPicturePath = picturePath.replace("/images", "");
-            File file = new File(absolutePath, originalPicturePath);
+            s3Upload.deleteImageFromS3IfExists(picturePath);
 
-            if (file.exists()) {
-                if (file.delete()) {
-                    System.out.println("File deleted successfully: " + originalPicturePath);
-                } else {
-                    System.out.println("Failed to delete file: " + originalPicturePath);
-                }
-            } else {
-                System.out.println("File not found: " + originalPicturePath);
-            }
+//            String originalPicturePath = picturePath.replace("/images", "");
+//            File file = new File(absolutePath, originalPicturePath);
+//
+//            if (file.exists()) {
+//                if (file.delete()) {
+//                    System.out.println("File deleted successfully: " + originalPicturePath);
+//                } else {
+//                    System.out.println("Failed to delete file: " + originalPicturePath);
+//                }
+//            } else {
+//                System.out.println("File not found: " + originalPicturePath);
+//            }
         }
     }
 
@@ -703,7 +642,7 @@ public class ImgUploadService {
         List<DownloadFileDaoEntity> existedDownloadFiles = imageDao.getDownloadFilesByDownloadId(downloads_id);
 
         for (DownloadFileDaoEntity downloadFile : existedDownloadFiles) {
-            if (!existingFileNames.contains(downloadFile.getFile_name())) {
+            if (!existingFileNames.contains(downloadFile.getName())) {
                 deleteFilesByDownloadFilesId(downloadFile.getDownload_file_id());
             }
         }
@@ -714,18 +653,23 @@ public class ImgUploadService {
 
     public void deleteFilesByDownloadFilesId(Long download_file_id) throws Exception{
         DownloadFileDaoEntity existedDownloadFiles = imageDao.getDownloadFilesByDownloadFileId(download_file_id);
-        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadFilePath;
-        deletePhysicalFile(absolutePath, existedDownloadFiles.getFile_path());
+        String filePath = existedDownloadFiles.getPath();
+        String decodedOriginalName = URLDecoder.decode(filePath, StandardCharsets.UTF_8);
+        String imageNameInS3 = decodedOriginalName.replace("https://joseonkeyboard-server-bucketimg.s3.ap-northeast-2.amazonaws.com/", "");
 
+        s3Upload.deleteFile(imageNameInS3);
         imageDao.deleteFilesByDownloadFilesId(download_file_id);
     }
 
     public void deleteFilesByDownloadsId(Long downloads_id) throws Exception{
         List<DownloadFileDaoEntity> existedDownloadFiles = imageDao.getDownloadFilesByDownloadId(downloads_id);
-        String absolutePath = new File("").getAbsolutePath() + "\\" + uploadFilePath;
 
         for (DownloadFileDaoEntity downloadFile : existedDownloadFiles) {
-            deletePhysicalFile(absolutePath, downloadFile.getFile_path());
+            String filePath = downloadFile.getPath();
+            String decodedOriginalName = URLDecoder.decode(filePath, StandardCharsets.UTF_8);
+            String imageNameInS3 = decodedOriginalName.replace("https://joseonkeyboard-server-bucketimg.s3.ap-northeast-2.amazonaws.com/", "");
+
+            s3Upload.deleteFile(imageNameInS3);
         }
 
         imageDao.deleteFilesByDownloadsId(downloads_id);
@@ -736,25 +680,15 @@ public class ImgUploadService {
             throw new Exception("Failed to store empty file.");
         }
 
-        String absolutePath = new File("").getAbsolutePath() + new File(uploadFilePath);
-        File destinationDir = new File(absolutePath);
+        String path = s3Upload.upload(file, "board/downloadFile");
+        String name = file.getOriginalFilename();
+        DownloadFileDaoEntity fileEntity = new DownloadFileDaoEntity();
 
-        if (!destinationDir.exists()) {
-            destinationDir.mkdirs();
-        }
+        fileEntity.setPath(path);
+        fileEntity.setName(name);
+        fileEntity.setDownloads_id(downloads_id);
 
-        String fileName = file.getOriginalFilename();
-        String new_file_name = System.nanoTime() + fileName;
-
-        File destinationFile = new File(destinationDir, new_file_name);
-
-        file.transferTo(destinationFile);
-
-        DownloadFileDaoEntity fileVO = new DownloadFileDaoEntity();
-        fileVO.setFile_name(fileName);
-        fileVO.setFile_path("/files" + File.separator + new_file_name);
-        fileVO.setDownloads_id(downloads_id);
-        imageDao.saveDownloadFiles(fileVO);
+        imageDao.saveDownloadFiles(fileEntity);
     }
 
     private void deletePhysicalFile(String absolutePath, String filePath) {

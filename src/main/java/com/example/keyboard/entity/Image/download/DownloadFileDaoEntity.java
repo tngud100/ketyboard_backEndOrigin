@@ -6,6 +6,6 @@ import lombok.Data;
 public class DownloadFileDaoEntity {
     private long download_file_id;
     private long downloads_id;
-    private String file_path;
-    private String file_name;
+    private String path;
+    private String name;
 }

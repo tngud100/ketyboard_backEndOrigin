@@ -11,6 +11,7 @@
     import com.example.keyboard.entity.board.download.DownloadEntity;
     import com.example.keyboard.repository.ImageDao;
     import com.example.keyboard.service.ImgUploadService;
+    import com.example.keyboard.service.S3Upload;
     import io.swagger.v3.oas.annotations.Operation;
     import io.swagger.v3.oas.annotations.tags.Tag;
     import jakarta.annotation.Resource;
@@ -26,12 +27,13 @@
 
     import java.io.File;
     import java.io.IOException;
+    import java.net.URLDecoder;
+    import java.nio.charset.StandardCharsets;
     import java.nio.file.Files;
     import java.nio.file.Path;
     import java.nio.file.Paths;
     import java.util.ArrayList;
     import java.util.List;
-    import java.util.UUID;
 
     @Tag(name = "이미지 API", description = "이미지 등록 API")
     @Component
@@ -40,10 +42,12 @@
 
         private final ImgUploadService imgUploadService;
         private final ImageDao imageDao;
+        private final S3Upload s3Upload;
 
-        public ImageController(ImgUploadService imgUploadService, ImageDao imageDao) {
+        public ImageController(ImgUploadService imgUploadService, ImageDao imageDao, S3Upload s3Upload) {
             this.imgUploadService = imgUploadService;
             this.imageDao = imageDao;
+            this.s3Upload = s3Upload;
         }
         @Value("${upload.path}") // application.properties에 설정된 이미지 업로드 경로를 가져옵니다.
         private String uploadPath;
@@ -167,23 +171,37 @@
             }
         }
 
-        @PostMapping("api/editor/imgUpload")
-        public ResponseEntity<?> uploadEditorImage(@RequestParam("upload") MultipartFile file) {
-            try {
-                String uniqueFilename = imgUploadService.uploadEditorImage(file);
 
-                // 이미지 URL 반환
-                String fileUrl = "http://localhost:8080/images/editor/" + uniqueFilename;
+        //        @PostMapping("api/editor/imgUpload")
+//        public ResponseEntity<?> uploadEditorImage(@RequestParam("upload") MultipartFile file) {
+//            try {
+//                String uniqueFilename = imgUploadService.uploadEditorImage(file);
+//
+//                // 이미지 URL 반환
+//                String fileUrl = "http://localhost:8080/images/editor/" + uniqueFilename;
+//                return ResponseEntity.ok().body("{\"url\": \"" + fileUrl + "\"}");
+//            } catch (Exception e) {
+//                return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
+//            }
+//        }
+
+        @PostMapping("api/editor/imgUpload")
+        public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file,
+                                                 @RequestParam("dirName") String dirName) {
+            try {
+                String fileUrl = s3Upload.upload(file, dirName);
                 return ResponseEntity.ok().body("{\"url\": \"" + fileUrl + "\"}");
-            } catch (Exception e) {
-                return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
+            } catch (IOException e) {
+                return ResponseEntity.status(500).body("파일 업로드 실패: " + e.getMessage());
             }
         }
 
+
         @DeleteMapping("api/editor/imgDelete/{imgName}")
-        public ResponseEntity<?> deleteEditorImage(@PathVariable("imgName") String imgName) {
+        public ResponseEntity<?> deleteEditorImage(@RequestParam("originalName") String originalName) {
             try {
-                imgUploadService.deleteEditorImage(imgName);
+                String decodedOriginalName = URLDecoder.decode(originalName, StandardCharsets.UTF_8);
+                imgUploadService.deleteEditorImage(decodedOriginalName);
                 return ResponseEntity.ok().body("");
             } catch (Exception e) {
                 return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
@@ -195,24 +213,92 @@
         // 게시글 삭제시에는 images폴더에 있는 해당 게시글 이미지 삭제
         // 게시글 수정시에는 url확인 후 삭제
 
+
+        private void enrollPicToDataBase(List<? extends Object> listObject, String imgUrl, String targetDir, Long board_id, int board_type) throws Exception {
+            Boolean isExistAlready = false;
+            String processedImgUrl = imgUrl.replace("https://joseonkeyboard-server-bucketimg.s3.ap-northeast-2.amazonaws.com/", "");
+            String originalName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
+
+            for (Object obj : listObject) {
+                String existUrl = "";
+
+                if (obj instanceof NoticeDaoEntity) {
+                    NoticeDaoEntity entity = (NoticeDaoEntity) obj;
+                    existUrl = entity.getPicture_path();
+                } else if (obj instanceof FaqDaoEntity) {
+                    FaqDaoEntity entity = (FaqDaoEntity) obj;
+                    existUrl = entity.getPicture_path();
+                } else if (obj instanceof DownloadDaoEntity) {
+                    DownloadDaoEntity entity = (DownloadDaoEntity) obj;
+                    existUrl = entity.getPicture_path();
+                }
+
+                if (existUrl.equals(processedImgUrl)) {
+                    isExistAlready = true;
+                    break;
+                }
+
+            }
+
+            if(!isExistAlready){
+                String[] splitedOriginalName = originalName.split("_", 2);
+                System.out.println("Original Name: " + originalName);
+                System.out.println("Target Directory: " + targetDir);
+                String movedPicturePath = s3Upload.moveFile(originalName, targetDir);
+                imgUploadService.enrollEditorImageToDatabase(splitedOriginalName[1], movedPicturePath, board_id, board_type);
+            }
+        }
+
         // board_type 1일때 notice, 2일때 faq, 3일때 download
         public void enrollEditorPictures(List<String> imageUrls, Long board_id, int board_type) throws Exception {
-            for (String imgUrl : imageUrls) {
-                String imgName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
-                String[] originalName = imgName.split("_", 2);
-                String path = "/images/" + imgName;
+            if(board_type == 1){
+                List<NoticeDaoEntity> noticeList = imageDao.selectNoticePicturesByNoticesId(board_id);
+                String targetDir = "board/notice";
+                for (String imgUrl : imageUrls) {
+                    enrollPicToDataBase(noticeList, imgUrl, targetDir, board_id, board_type);
+                }
 
-                imgUploadService.moveEditorImages(imgUrl, board_id, board_type);
-                imgUploadService.enrollEditorImageToDatabase(originalName[1], path, imgUrl, board_id, board_type);
+            }else if(board_type == 2){
+                List<FaqDaoEntity> faqList =  imageDao.selectFaqPicturesByFaqsId(board_id);
+                String targetDir = "board/faq";
+                for (String imgUrl : imageUrls) {
+                    enrollPicToDataBase(faqList, imgUrl, targetDir, board_id, board_type);
+                }
+            }else{
+                List<DownloadDaoEntity> downloadList =  imageDao.selectDownloadPicturesByDownloadsId(board_id);
+                String targetDir = "board/download";
+                for (String imgUrl : imageUrls) {
+                    enrollPicToDataBase(downloadList, imgUrl, targetDir, board_id, board_type);
+                }
             }
+
+
+//            for (String imgUrl : imageUrls) {
+//                String originalName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
+//                if(board_type == 1){
+//                    targetDir = "board/notice";
+//                    String movedPictureName = s3Upload.moveFile(originalName, targetDir);
+//                    path = movedPictureName;
+//                }else if (board_type == 2){
+//                    targetDir = "board/faq";
+//                    String movedPictureName = s3Upload.moveFile(originalName, targetDir);
+//                    path = movedPictureName;
+//                }else{
+//                    targetDir = "board/download";
+//                    String movedPictureName = s3Upload.moveFile(originalName, targetDir);
+//                    path = movedPictureName;
+//                }
+//
+//                String[] splitedOriginalName = originalName.split("_", 2);
+//            }
         }
 
 
         public void updateEditorPicture(List<String> imageUrls, List<String> deletedImageUrls, Long board_id, int board_type) throws Exception{
-            // front deleteSize가 너무 이상함 이전에 올렸던 모든 이미지가 DELETEDIMAGEURLS로 잡힘
             if(!deletedImageUrls.isEmpty()){
-                imgUploadService.deleteBoardPicturesByBoardPicturesId(deletedImageUrls, board_id, board_type);
+                imgUploadService.deleteBoardPicturesByBoardPicturesId(board_id, board_type, deletedImageUrls);
             }
+
             if(!imageUrls.isEmpty()){
                 enrollEditorPictures(imageUrls, board_id, board_type);
             }

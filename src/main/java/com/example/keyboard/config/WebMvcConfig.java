@@ -23,8 +23,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry
                 .addResourceHandler("/images/**")
 //                .addResourceLocations("file:/Users/kimsoohyeong/Desktop/Keyboardbackend_origin/src/main/resources/static/images/");
-                .addResourceLocations("file:C:/Users/개미인스/Desktop/조선 타자기/git/keyboardbackend_origin/src/main/resources/static/images/");
-//                .addResourceLocations("file:/var/app/current/src/main/resources/static/images/");
+//                .addResourceLocations("file:C:/Users/개미인스/Desktop/조선 타자기/git/keyboardbackend_origin/src/main/resources/static/images/");
+                .addResourceLocations("file:/var/app/current/src/main/resources/static/images/");
     }
 }
 ///var/app/current/

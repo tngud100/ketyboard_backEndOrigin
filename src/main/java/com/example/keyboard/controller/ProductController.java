@@ -27,33 +27,33 @@ public class ProductController {
     public final ImageController imgController;
 
     /////////////////////////////////// POST ///////////////////////////////////
-    @Operation(summary = "상품 등록")
-    @PostMapping("/product/enroll")
-    public ResponseEntity<Object> productEnroll(ProductImageEntity vo) {
-        try {
-            // 중복된 상품명 검사 및 이미지 업로드 경로 가져오기
-            if (vo.getName() == null ||
-                    vo.getList_picture() == null ||
-                    vo.getList_back_picture() == null ||
-                    vo.getRepresent_picture() == null ||
-                    vo.getDesc_picture() == null) {
-                return ResponseEntity.badRequest().body("모두 기입해 주세요");
-            }
-
-            if (productService.isProductNameExists(vo.getName())) {
-                return ResponseEntity.badRequest().body("이미 존재하는 상품입니다.");
-            }
-            String name = vo.getName();
-            String type = vo.getProduct_type();
-
-            Long product_id = productService.productEnroll(name, type);
-            vo.setProduct_id(product_id);
-            imgController.uploadImage(vo);
-            return new ResponseEntity<>("상품 등록 완료", HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @Operation(summary = "상품 등록")
+//    @PostMapping("/product/enroll")
+//    public ResponseEntity<Object> productEnroll(ProductImageEntity vo) {
+//        try {
+//            // 중복된 상품명 검사 및 이미지 업로드 경로 가져오기
+//            if (vo.getName() == null ||
+//                    vo.getList_picture() == null ||
+//                    vo.getList_back_picture() == null ||
+//                    vo.getRepresent_picture() == null ||
+//                    vo.getDesc_picture() == null) {
+//                return ResponseEntity.badRequest().body("모두 기입해 주세요");
+//            }
+//
+//            if (productService.isProductNameExists(vo.getName())) {
+//                return ResponseEntity.badRequest().body("이미 존재하는 상품입니다.");
+//            }
+//            String name = vo.getName();
+//            String type = vo.getProduct_type();
+//
+//            Long product_id = productService.productEnroll(name, type);
+//            vo.setProduct_id(product_id);
+//            imgController.uploadImage(vo);
+//            return new ResponseEntity<>("상품 등록 완료", HttpStatus.OK);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+//        }
+//    }
     @Operation(summary = "상품 카테고리 등록", description = "상품 카테고리 등록(최초 등록은 기본값 설정)")
     @PostMapping("/productcategory/enroll")
     public ResponseEntity<Object> enrollProductCategory(@RequestParam(value="product_id") Long product_id, @RequestParam(value="category_name") String category_name, @RequestParam(value="category_state") int category_state){
@@ -282,7 +282,6 @@ public class ProductController {
     /////////////////////////////////// delete ///////////////////////////////////
     // JWTFilter 오류 발생 controll 확인하기
     // 200 ok 떠도 데이터 베이스 그대로
-
 
     // 연결 고리 : 상품 > 상품 카테고리 > 상세 상품
 

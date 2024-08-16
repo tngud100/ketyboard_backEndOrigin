@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.keyboard.repository.RenewalProductDao">
+    <!--  상품 등록  -->
+    <insert id="insertProduct" parameterType="RenewalProductEntity" useGeneratedKeys="true" keyProperty="product_id">
+        INSERT INTO renewalproduct(category, name, amount, shopping_link)
+        VALUES(#{category}, #{name}, #{amount}, #{shopping_link})
+    </insert>
+    <insert id="insertPictorialMain" parameterType="PictorialProductEntity">
+        INSERT INTO pictorialproduct(product_id, comment, sequence)
+        VALUES(#{product_id}, #{comment}, #{sequence})
+    </insert>
+    <insert id="insertBestMain" parameterType="BestProductEntity" useGeneratedKeys="true" keyProperty="best_product_id">
+        INSERT INTO bestproduct(product_id, comment)
+        VALUES(#{product_id}, #{comment})
+    </insert>
+
+    <!--  등록한 상품 가져오기  -->
+    <select id="selectAllProductList" >
+        SELECT * FROM renewalproduct WHERE isdelete = 0 ORDER BY regdate ASC;
+    </select>
+    <select id="selectProductById" >
+        SELECT * FROM renewalproduct WHERE product_id = #{product_id} AND isdelete = 0 ORDER BY regdate ASC;
+    </select>
+    <select id="selectProductListByName" >
+        SELECT * FROM renewalproduct WHERE isdelete = 0 AND name = #{name} ORDER BY regdate ASC;
+    </select>
+    <select id="selectMainPictorialProduct" >
+        SELECT * FROM pictorialproduct WHERE isdelete = 0 ORDER BY sequence ASC;
+    </select>
+    <select id="selectMainPictorialProductByProductId" >
+        SELECT * FROM pictorialproduct WHERE isdelete = 0 AND product_id = #{product_id} ORDER BY regdate ASC;
+    </select>
+    <select id="selectMainPictorialProductByPictorialProductId" >
+        SELECT * FROM pictorialproduct WHERE isdelete = 0 AND pictorial_product_id = #{pictorial_product_id} ORDER BY regdate ASC;
+    </select>
+    <select id="selectMainPictorialProductBySequence" >
+        SELECT * FROM pictorialproduct WHERE isdelete = 0 AND sequence = #{sequence} ORDER BY regdate ASC;
+    </select>
+    <select id="selectBestMainByProductId" >
+        SELECT * FROM bestproduct WHERE isdelete = 0 AND product_id = #{product_id} ORDER BY regdate ASC;
+    </select>
+    <select id="selectBestMainByBestProductId" >
+        SELECT * FROM bestproduct WHERE isdelete = 0 AND best_product_id = #{best_product_id} ORDER BY regdate ASC;
+    </select>
+    <select id="selectMainBestProduct" >
+        SELECT * FROM bestproduct WHERE isdelete = 0 ORDER BY regdate ASC;
+    </select>
+
+    <!--  상품 수정  -->
+    <update id="updateRenewalProduct">
+        UPDATE renewalproduct
+        SET <if test="category != null">
+                category = #{category},
+            </if>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="amount != null">
+                amount = #{amount},
+            </if>
+            <if test="shopping_link != null">
+                shopping_link = #{shopping_link}
+            </if>
+        WHERE product_id = #{product_id}
+    </update>
+    <update id="updatePictorialProduct">
+        UPDATE pictorialproduct
+        SET <if test="product_id != null">
+                product_id = #{product_id},
+            </if>
+            <if test="sequence != null">
+                sequence = #{sequence},
+            </if>
+            <if test="comment != null">
+                comment = #{comment}
+            </if>
+        WHERE pictorial_product_id = #{pictorial_product_id}
+    </update>
+    <update id="updateBestProduct">
+        UPDATE bestproduct
+        SET <if test="product_id != null">
+                product_id = #{product_id},
+            </if>
+            <if test="comment != null">
+                comment = #{comment}
+            </if>
+        WHERE best_product_id = #{best_product_id}
+    </update>
+
+    <!--  상품 삭제  -->
+    <update id="deleteRenewalProduct">
+        UPDATE renewalproduct
+        SET isdelete = 1
+        WHERE product_id = #{product_id}
+    </update>
+    <update id="deletePictorialProduct">
+        UPDATE pictorialproduct
+        SET isdelete = 1
+        WHERE pictorial_product_id = #{pictorial_product_id}
+    </update>
+    <update id="deleteBestProduct">
+        UPDATE bestproduct
+        SET isdelete = 1
+        WHERE best_product_id = #{best_product_id}
+    </update>
+    <update id="deletePictorialProductByProductId">
+        UPDATE pictorialproduct
+        SET isdelete = 1
+        WHERE product_id = #{product_id}
+    </update>
+    <update id="deleteBestProductByProductId">
+        UPDATE bestproduct
+        SET isdelete = 1
+        WHERE product_id = #{product_id}
+    </update>
+
+</mapper>

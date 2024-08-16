@@ -15,7 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -98,12 +100,17 @@ public class BoardService {
     public DownloadEntity getDownloadByDownloadId(long downloads_id) throws Exception{
         return boardDao.getDownloadByDownloadId(downloads_id);
     }
-    public List<String> getDownloadFilesNameByDownloadId(long downloads_id) throws Exception{
+    public List<Map<String,String>> getDownloadFilesNameByDownloadId(long downloads_id) throws Exception{
         List<DownloadFileDaoEntity> files = imageDao.getDownloadFilesByDownloadId(downloads_id);
-        List<String> fileNameList = new ArrayList<>();
+        List<Map<String, String>> fileNameList = new ArrayList<>();
         for(var i = 0; i < files.size(); i++){
-            String fileName = files.get(i).getFile_name();
-            fileNameList.add(fileName);
+            String fileName = files.get(i).getName();
+            String filePath = files.get(i).getPath();
+
+            Map<String, String> fileMap = new HashMap<>();
+            fileMap.put("fileName", fileName);
+            fileMap.put("filePath", filePath);
+            fileNameList.add(fileMap);
         }
         return fileNameList;
     }
@@ -122,12 +129,12 @@ public class BoardService {
 
     public void updateDownloadBoard(DownloadEntity downloadEntity) throws Exception {
         boardDao.updateDownloadBoard(downloadEntity);
-        imageController.updateDownloadFiles(downloadEntity);
 
         Long downloads_id = downloadEntity.getDownloads_id();
         List<String> imageUrls = downloadEntity.getImageUrls();
         List<String> deletedImageUrls = downloadEntity.getDeleteImageUrls();
 
+        imageController.updateDownloadFiles(downloadEntity);
         imageController.updateEditorPicture(imageUrls, deletedImageUrls, downloads_id, 3);
     }
 

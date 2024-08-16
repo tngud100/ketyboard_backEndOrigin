@@ -14,7 +14,6 @@ java {
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
-
     }
 }
 
@@ -49,6 +48,16 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'software.amazon.awssdk:s3:2.26.22' // 최신 버전으로 변경
+    implementation 'software.amazon.awssdk:auth' // 인증 관련 라이브러리 추가
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+    implementation 'com.amazonaws:aws-java-sdk-lambda:1.12.550'  // 최신 버전 확인 후 적용
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
 }
 
 jar{

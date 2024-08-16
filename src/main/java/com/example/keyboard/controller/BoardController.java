@@ -154,10 +154,10 @@ public class BoardController {
     public ResponseEntity<Object> getDownloadByDownloadId(@PathVariable("downloadsId") Long downloads_id){
         try{
             DownloadEntity downloadBoard = boardService.getDownloadByDownloadId(downloads_id);
-            List<String> fileNameList = boardService.getDownloadFilesNameByDownloadId(downloads_id);
+            List<Map<String,String>> fileNameList = boardService.getDownloadFilesNameByDownloadId(downloads_id);
             Map<String, Object> responseMap = new HashMap<>();
             responseMap.put("boardList", downloadBoard);
-            responseMap.put("fileNames", fileNameList);
+            responseMap.put("files", fileNameList);
             return new ResponseEntity<>(responseMap, HttpStatus.OK);
         } catch (Exception e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
