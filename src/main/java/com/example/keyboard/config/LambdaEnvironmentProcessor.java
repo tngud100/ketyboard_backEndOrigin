@@ -40,9 +40,9 @@ public class LambdaEnvironmentProcessor implements EnvironmentPostProcessor {
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         try {
-            // Lambda 호출하여 시크릿 정보 가져오기
+
             InvokeRequest invokeRequest = new InvokeRequest()
-                    .withFunctionName("lamdaBucket") // Lambda 함수 이름 (실제 Lambda 함수 이름을 사용)
+                    .withFunctionName("myAppdata") // Lambda 함수 이름 (실제 Lambda 함수 이름을 사용)
                     .withPayload("{}"); // 빈 페이로드 전송
 
             InvokeResult invokeResult = awsLambda.invoke(invokeRequest);
@@ -55,7 +55,7 @@ public class LambdaEnvironmentProcessor implements EnvironmentPostProcessor {
             if ((int) lambdaResponse.get("statusCode") == 200) {
                 // body 내부의 값 추출
                 Map<String, Object> secrets = (Map<String, Object>) lambdaResponse.get("body");
-//                System.out.println(secrets);
+                System.out.println(secrets);
 
                 // 환경 변수로 설정
                 environment.getPropertySources().addFirst(new MapPropertySource("lambdaSecrets", secrets));

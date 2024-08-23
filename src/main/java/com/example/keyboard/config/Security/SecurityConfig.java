@@ -135,15 +135,15 @@ public class SecurityConfig  {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://xn--ok0b327ajvetzab81a.com",
                 "https://xn--ok0b327ajvetzab81a.com",
-                "http://www.xn--ok0b327ajvetzab81a.com",
                 "https://www.xn--ok0b327ajvetzab81a.com",
-                "http://d585ihjutu4dg.cloudfront.net",
-                "https://d585ihjutu4dg.cloudfront.net",
+                "https://dik58thfdw586.cloudfront.net",
+                "http://xn--ok0b327ajvetzab81a.com",
+                "http://www.xn--ok0b327ajvetzab81a.com",
+                "http://dik58thfdw586.cloudfront.net",
+                "https://joseonkeyboard-image-bucket.s3.ap-northeast-2.amazonaws.com",
                 "http://localhost:3000",
-                "http://127.0.0.1:3000",
-                "https://localhost:3000"
+                "http://127.0.0.1:3000"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowCredentials(true);

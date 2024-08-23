@@ -65,7 +65,7 @@ public class RenewalProductImageController {
         }
 
         String decodedOriginalName = URLDecoder.decode(originalName, StandardCharsets.UTF_8);
-        String imageNameInS3 = decodedOriginalName.replace("https://joseonkeyboard-server-bucketimg.s3.ap-northeast-2.amazonaws.com/", "");
+        String imageNameInS3 = decodedOriginalName.replace("https://joseonkeyboard-image-bucket.s3.ap-northeast-2.amazonaws.com/", "");
         s3Upload.deleteFile(imageNameInS3);
 
         if(enrollType == 0){

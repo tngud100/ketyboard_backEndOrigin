@@ -200,6 +200,10 @@
         @DeleteMapping("api/editor/imgDelete/{imgName}")
         public ResponseEntity<?> deleteEditorImage(@RequestParam("originalName") String originalName) {
             try {
+                System.out.println("Received originalName: {}" + originalName);
+                if (originalName == null) {
+                    return ResponseEntity.badRequest().body("originalName parameter is missing");
+                }
                 String decodedOriginalName = URLDecoder.decode(originalName, StandardCharsets.UTF_8);
                 imgUploadService.deleteEditorImage(decodedOriginalName);
                 return ResponseEntity.ok().body("");
@@ -216,7 +220,7 @@
 
         private void enrollPicToDataBase(List<? extends Object> listObject, String imgUrl, String targetDir, Long board_id, int board_type) throws Exception {
             Boolean isExistAlready = false;
-            String processedImgUrl = imgUrl.replace("https://joseonkeyboard-server-bucketimg.s3.ap-northeast-2.amazonaws.com/", "");
+            String processedImgUrl = imgUrl.replace("https://joseonkeyboard-image-bucket.s3.ap-northeast-2.amazonaws.com/", "");
             String originalName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
 
             for (Object obj : listObject) {

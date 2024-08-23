@@ -114,9 +114,14 @@ public class RenewalProductService {
             }
         }
 
-        // 새로운 이미지가 있을시에 기존 삭제 및 새로운 이미지 등록
-        if(newImage != null){
+        RenewalProductDaoEntity productImageList = renewalProductImageDao.selectRenewalProductImgByProductId(product_id);
+
+        // 기존 이미지가 있을경우 기존 이미지 삭제
+        if(productImageList != null){
             renewalProductImageController.deleteImageProduct(product_id, 0);
+        }
+        // 새로운 이미지가 있을시에 새로운 이미지 등록
+        if(newImage != null){
             renewalProductImageController.enrollImageProduct(newImage,product_id, 0);
         }
 
