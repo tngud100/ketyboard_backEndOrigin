@@ -116,7 +116,7 @@ public class RenewalProductController {
     }
     @Operation(summary = "메인 화보 상품 수정", description = "메인 화보 상품 수정")
     @PutMapping("/main/pictorial/update")
-    public ResponseEntity<Object> updatePictorialProduct(PictorialProductEntity pictorialProductEntity){
+    public ResponseEntity<Object> updatePictorialProduct(@ModelAttribute PictorialProductEntity pictorialProductEntity){
         try{
             renewalProductService.updatePictorialProduct(pictorialProductEntity);
             return new ResponseEntity<>(HttpStatus.OK);

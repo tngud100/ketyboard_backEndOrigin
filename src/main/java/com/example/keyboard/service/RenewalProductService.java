@@ -161,6 +161,7 @@ public class RenewalProductService {
             }
         }
 
+        // 새로운 이미지가 있을시 이미지를 삭제하고 다시 등록
         if(newImage != null){
             renewalProductImageController.deleteImageProduct(pictorialProductId, 1);
             renewalProductImageController.enrollImageProduct(newImage, newProductId, 1);

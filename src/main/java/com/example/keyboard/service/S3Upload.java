@@ -62,24 +62,30 @@ public class S3Upload {
 
     private Optional<File> convert(MultipartFile file) throws IOException {
         // 임시 파일 경로 출력
-        String tempFilePath = System.getProperty("java.io.tmpdir") + "/" + file.getOriginalFilename();
+        String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        String tempFilePath = System.getProperty("java.io.tmpdir") + "/" + uniqueFileName;
         System.out.println("임시 파일 경로: " + tempFilePath);
 
         File convertFile = new File(tempFilePath);
 
-        // 파일이 생성되는지 여부 확인
-        if (convertFile.createNewFile()) {
-            System.out.println("파일이 성공적으로 생성되었습니다: " + convertFile.getAbsolutePath());
-            try (FileOutputStream fos = new FileOutputStream(convertFile)) {
-                fos.write(file.getBytes());
+        try {
+            if (convertFile.createNewFile()) {
+                System.out.println("파일이 성공적으로 생성되었습니다: " + convertFile.getAbsolutePath());
+                try (FileOutputStream fos = new FileOutputStream(convertFile)) {
+                    fos.write(file.getBytes());
+                }
+                return Optional.of(convertFile);
+            } else {
+                System.out.println("파일 생성 실패: " + convertFile.getAbsolutePath());
             }
-            return Optional.of(convertFile);
-        } else {
-            // 파일 생성 실패 시 이유를 확인
-            System.out.println("파일 생성 실패: " + convertFile.getAbsolutePath());
+        } catch (IOException e) {
+            System.out.println("파일 생성 중 IOException 발생: " + e.getMessage());
+            e.printStackTrace();
         }
+
         return Optional.empty();
     }
+
 
 
     public boolean deleteImageFromS3IfExists(String picturePath) throws Exception{
