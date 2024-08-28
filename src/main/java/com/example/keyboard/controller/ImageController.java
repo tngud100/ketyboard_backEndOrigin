@@ -174,16 +174,16 @@
 
         //        @PostMapping("api/editor/imgUpload")
 //        public ResponseEntity<?> uploadEditorImage(@RequestParam("upload") MultipartFile file) {
-//            try {
-//                String uniqueFilename = imgUploadService.uploadEditorImage(file);
-//
-//                // 이미지 URL 반환
-//                String fileUrl = "http://localhost:8080/images/editor/" + uniqueFilename;
-//                return ResponseEntity.ok().body("{\"url\": \"" + fileUrl + "\"}");
-//            } catch (Exception e) {
-//                return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
-//            }
-//        }
+////            try {
+////                String uniqueFilename = imgUploadService.uploadEditorImage(file);
+////
+////                // 이미지 URL 반환
+////                String fileUrl = "http://localhost:8080/images/editor/" + uniqueFilename;
+////                return ResponseEntity.ok().body("{\"url\": \"" + fileUrl + "\"}");
+////            } catch (Exception e) {
+////                return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
+////            }
+////        }
 
         @PostMapping("api/editor/imgUpload")
         public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file,
@@ -220,7 +220,8 @@
 
         private void enrollPicToDataBase(List<? extends Object> listObject, String imgUrl, String targetDir, Long board_id, int board_type) throws Exception {
             Boolean isExistAlready = false;
-            String processedImgUrl = imgUrl.replace("https://joseonkeyboard-image-bucket.s3.ap-northeast-2.amazonaws.com/", "");
+            String innerPath = "https://joseonkeyboard-image-bucket.s3.ap-northeast-2.amazonaws.com/";
+            String processedImgUrl = imgUrl.replace(innerPath, "");
             String originalName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
 
             for (Object obj : listObject) {
@@ -246,10 +247,16 @@
 
             if(!isExistAlready){
                 String[] splitedOriginalName = originalName.split("_", 2);
-                System.out.println("Original Name: " + originalName);
-                System.out.println("Target Directory: " + targetDir);
-                String movedPicturePath = s3Upload.moveFile(originalName, targetDir);
-                imgUploadService.enrollEditorImageToDatabase(splitedOriginalName[1], movedPicturePath, board_id, board_type);
+                if (imgUrl.startsWith(innerPath)) {
+                    // S3에 있는 이미지일 경우에만 파일 이동 수행
+                    System.out.println("Original Name: " + originalName);
+                    System.out.println("Target Directory: " + targetDir);
+                    String movedPicturePath = s3Upload.moveFile(originalName, targetDir);
+                    imgUploadService.enrollEditorImageToDatabase(splitedOriginalName[1], movedPicturePath, board_id, board_type);
+                } else {
+                    // 외부 링크일 경우, S3에서 파일을 옮기는 작업을 생략하고 바로 등록
+                    imgUploadService.enrollEditorImageToDatabase(splitedOriginalName[1], imgUrl, board_id, board_type);
+                }
             }
         }
 

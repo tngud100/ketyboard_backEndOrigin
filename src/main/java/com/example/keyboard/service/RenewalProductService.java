@@ -205,16 +205,23 @@ public class RenewalProductService {
     public void deleteRenewalProduct(Long product_id) throws Exception{
         BestProductEntity bestProductEntity = renewalProductDao.selectBestMainByProductId(product_id);
         PictorialProductEntity pictorialProductEntity = renewalProductDao.selectMainPictorialProductByProductId(product_id);
-        Long best_product_id = bestProductEntity.getBest_product_id();
-        Long pictorial_product_id = pictorialProductEntity.getPictorial_product_id();
+
+        if(bestProductEntity != null){
+            Long best_product_id = bestProductEntity.getBest_product_id();
+
+            renewalProductImageController.deleteImageProduct(best_product_id,2);
+            renewalProductDao.deleteBestProductByProductId(product_id);
+        }
+
+        if(pictorialProductEntity != null){
+            Long pictorial_product_id = pictorialProductEntity.getPictorial_product_id();
+
+            renewalProductImageController.deleteImageProduct(pictorial_product_id,1);
+            renewalProductDao.deletePictorialProductByProductId(product_id);
+        }
 
         renewalProductImageController.deleteImageProduct(product_id,0);
-        renewalProductImageController.deleteImageProduct(pictorial_product_id,1);
-        renewalProductImageController.deleteImageProduct(best_product_id,2);
-
         renewalProductDao.deleteRenewalProduct(product_id);
-        renewalProductDao.deletePictorialProductByProductId(product_id);
-        renewalProductDao.deleteBestProductByProductId(product_id);
     }
     public void deletePictorialProduct(Long pictorial_product_id) throws Exception{
         renewalProductImageController.deleteImageProduct(pictorial_product_id,1);
